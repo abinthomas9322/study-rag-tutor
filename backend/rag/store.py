@@ -41,7 +41,10 @@ def connect(db_path: str) -> sqlite3.Connection:
     """
     if db_path != ":memory:":
         Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(db_path)
+    # check_same_thread=False: the single shared connection is reached from
+    # FastAPI's worker threads. SQLite serialises access internally; the app's
+    # write load (one class) is light enough that this is safe.
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.enable_load_extension(True)
     sqlite_vec.load(conn)
     conn.enable_load_extension(False)
