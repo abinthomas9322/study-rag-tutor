@@ -20,7 +20,7 @@ Definition-of-Done gate = 100%).
 - [x] 1.1 Config + text chunking ................ 14%  (commit f2941c2)
 - [x] 1.2 Embeddings via fastembed .............. 19%  (commit b086f76)
 - [x] 1.3 sqlite-vec persistent ingest + retrieve 25%  (commit 7b05d9b)
-- [ ] 1.4 Grounded answer generation (Groq) ..... 31%
+- [x] 1.4 Grounded answer generation (Groq) ..... 31%  (commit 485f3d0)
 
 ## Phase 2 — Backend API (FastAPI + SQLite)
 - [ ] 2.1 App factory + health + typed config ... 35%
@@ -62,8 +62,8 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 25% — Phase 1 nearly done.
-- **Next slice:** 1.4 — grounded answer generation (Groq).
+- **Progress:** 31% — Phase 1 (core RAG engine) complete.
+- **Next slice:** 2.1 — FastAPI app factory + health + typed config.
 - **Branch:** `main` (local only — not pushed yet).
 
 ## 🐞 Known issues
