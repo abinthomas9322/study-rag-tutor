@@ -3,10 +3,65 @@
 from fastapi import APIRouter, HTTPException, UploadFile
 
 from app.deps import DbDep, EmbedderDep, GeneratorDep, SettingsDep, StoreDep
-from app.schemas import AnswerOut, AskRequest, DocumentOut, SourceOut
+from app.schemas import (
+    AnswerOut,
+    AskRequest,
+    CourseOut,
+    CreateCourseRequest,
+    DocumentOut,
+    JoinRequest,
+    SourceOut,
+    StudentOut,
+)
 from app.services import answer_question, ingest_pdf
 
 router = APIRouter()
+
+
+@router.post("/courses", status_code=201, response_model=CourseOut, tags=["courses"])
+def create_course(body: CreateCourseRequest, db: DbDep) -> CourseOut:
+    """Create a new course space; 409 if the join code is already taken."""
+    try:
+        course = db.create_course(body.id, body.name)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return CourseOut.model_validate(course)
+
+
+@router.get("/courses", response_model=list[CourseOut], tags=["courses"])
+def list_courses(db: DbDep) -> list[CourseOut]:
+    """List all course spaces."""
+    return [CourseOut.model_validate(c) for c in db.list_courses()]
+
+
+@router.get("/courses/{course_id}", response_model=CourseOut, tags=["courses"])
+def get_course(course_id: str, db: DbDep) -> CourseOut:
+    """Fetch a single course; 404 if it doesn't exist."""
+    course = db.get_course(course_id)
+    if course is None:
+        raise HTTPException(status_code=404, detail=f"course {course_id!r} not found")
+    return CourseOut.model_validate(course)
+
+
+@router.post(
+    "/courses/{course_id}/join",
+    status_code=201,
+    response_model=StudentOut,
+    tags=["courses"],
+)
+def join_course(course_id: str, body: JoinRequest, db: DbDep) -> StudentOut:
+    """Join a course as a student; idempotent. 404 if the course is unknown."""
+    try:
+        student = db.join_course(course_id, body.display_name)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return StudentOut.model_validate(student)
+
+
+@router.get("/courses/{course_id}/students", response_model=list[StudentOut], tags=["courses"])
+def list_students(course_id: str, db: DbDep) -> list[StudentOut]:
+    """List the students enrolled in a course."""
+    return [StudentOut.model_validate(s) for s in db.list_students(course_id)]
 
 
 @router.post(

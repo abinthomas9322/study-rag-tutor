@@ -15,6 +15,40 @@ class DocumentOut(BaseModel):
     uploaded_at: str
 
 
+class CreateCourseRequest(BaseModel):
+    """Payload to create a new course space."""
+
+    id: str = Field(min_length=1, max_length=64, description="Course join code, e.g. CS101")
+    name: str = Field(min_length=1, max_length=200, description="Human-readable course name")
+
+
+class CourseOut(BaseModel):
+    """Public view of a course."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    created_at: str
+
+
+class JoinRequest(BaseModel):
+    """Payload for a student joining a course."""
+
+    display_name: str = Field(min_length=1, max_length=80)
+
+
+class StudentOut(BaseModel):
+    """Public view of an enrolled student."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    course_id: str
+    display_name: str
+    joined_at: str
+
+
 class AskRequest(BaseModel):
     """A student's question about a course's materials."""
 
