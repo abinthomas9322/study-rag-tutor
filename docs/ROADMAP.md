@@ -13,13 +13,13 @@ Definition-of-Done gate = 100%).
 ## Phase 0 — Foundation
 - [x] 0.1 Scaffold project structure ............ 2%  (commit 783d63b)
 - [x] 0.2 Pin backend + dev dependencies ........ 4%  (commit c160c82)
-- [ ] 0.3 ROADMAP + docs skeleton ............... 6%
-- [ ] 0.4 Canonical CI/CD pipeline (green) ...... 9%
+- [x] 0.3 ROADMAP + docs skeleton ............... 6%  (commit f295e3f)
+- [x] 0.4 Canonical CI/CD pipeline (green) ...... 9%  (commit cace8c9)
 
 ## Phase 1 — Core RAG engine (pure, unit-tested)
 - [ ] 1.1 Config + text chunking ................ 14%
 - [ ] 1.2 Embeddings via fastembed .............. 19%
-- [ ] 1.3 ChromaDB persistent ingest + retrieve . 25%
+- [ ] 1.3 sqlite-vec persistent ingest + retrieve 25%
 - [ ] 1.4 Grounded answer generation (Groq) ..... 31%
 
 ## Phase 2 — Backend API (FastAPI + SQLite)
@@ -62,13 +62,15 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 4%
-- **Next slice:** 0.3 — ROADMAP + docs skeleton (this file), then 0.4 CI pipeline.
+- **Progress:** 9% — Phase 0 (Foundation) complete.
+- **Next slice:** 1.1 — config + text chunking (start of the core RAG engine).
 - **Branch:** `main` (local only — not pushed yet).
 
 ## 🐞 Known issues
 - GitHub remote not created yet — last attempt returned "Repository not found".
   Repo must be created on the owner's account before any push (Phase 9).
+- ChromaDB was swapped for sqlite-vec in 0.x to resolve CVE-2026-45829
+  (pre-auth RCE, no fixed release available). Vector store is now sqlite-vec.
 
 ## ⏭️ Next up after foundation
 Phase 1 — port the proven RAG logic from the earlier `rag-document-assistant`
