@@ -1,0 +1,29 @@
+[project]
+name = "study-rag-tutor-backend"
+version = "0.1.0"
+description = "Backend for the Study-Group RAG Tutor"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, isort, bugbear, pyupgrade, comprehensions, simplify
+select = ["E", "F", "I", "B", "UP", "W", "C4", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+disallow_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+# Third-party libs (fastembed, chromadb) ship without type stubs.
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q --cov=rag --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["rag"]
