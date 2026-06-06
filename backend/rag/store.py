@@ -33,23 +33,41 @@ def _serialize(vector: Sequence[float]) -> bytes:
     return struct.pack(f"{len(vector)}f", *vector)
 
 
+def connect(db_path: str) -> sqlite3.Connection:
+    """Open a SQLite connection with sqlite-vec loaded and foreign keys on.
+
+    This is the single place the vector extension is loaded, so any other
+    layer (e.g. the relational database) can share the very same connection.
+    """
+    if db_path != ":memory:":
+        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(db_path)
+    conn.enable_load_extension(True)
+    sqlite_vec.load(conn)
+    conn.enable_load_extension(False)
+    conn.execute("pragma foreign_keys = ON")
+    return conn
+
+
 class VectorStore:
-    """Stores chunk text and embeddings, scoped per course, in one SQLite file."""
+    """Stores chunk text and embeddings, scoped per course, in one SQLite file.
 
-    def __init__(self, db_path: str = ":memory:", dim: int = DEFAULT_DIM) -> None:
+    Pass ``connection`` to share an existing connection (it must already have
+    sqlite-vec loaded — use :func:`connect`); in that case the caller owns the
+    connection and is responsible for closing it. Otherwise a connection is
+    opened for ``db_path`` and owned by this store.
+    """
+
+    def __init__(
+        self,
+        db_path: str = ":memory:",
+        dim: int = DEFAULT_DIM,
+        connection: sqlite3.Connection | None = None,
+    ) -> None:
         self.dim = dim
-        self._conn = self._connect(db_path)
+        self._owns_conn = connection is None
+        self._conn = connection if connection is not None else connect(db_path)
         self._init_schema()
-
-    @staticmethod
-    def _connect(db_path: str) -> sqlite3.Connection:
-        if db_path != ":memory:":
-            Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(db_path)
-        conn.enable_load_extension(True)
-        sqlite_vec.load(conn)
-        conn.enable_load_extension(False)
-        return conn
 
     def _init_schema(self) -> None:
         self._conn.execute(
@@ -124,5 +142,6 @@ class VectorStore:
         return int(n)
 
     def close(self) -> None:
-        """Close the underlying database connection."""
-        self._conn.close()
+        """Close the connection, unless it was injected and owned by the caller."""
+        if self._owns_conn:
+            self._conn.close()

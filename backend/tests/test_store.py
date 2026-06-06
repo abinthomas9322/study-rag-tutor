@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from rag.store import SearchHit, VectorStore
+from rag.store import SearchHit, VectorStore, connect
 
 DIM = 4
 
@@ -109,3 +109,15 @@ def test_connect_creates_missing_parent_dirs(tmp_path: Path) -> None:
     store.add("C", "d", ["x"], [[1, 0, 0, 0]])
     store.close()
     assert Path(db).exists()
+
+
+def test_injected_connection_is_shared_and_not_closed() -> None:
+    # A caller-owned connection can be shared; closing the store must leave it
+    # open so the owner (e.g. the relational Database) keeps using it.
+    conn = connect(":memory:")
+    store = VectorStore(dim=DIM, connection=conn)
+    store.add("C", "d", ["x"], [[1, 0, 0, 0]])
+    store.close()
+    # Still usable after store.close() because the store doesn't own it.
+    assert conn.execute("select count(*) from chunks").fetchone()[0] == 1
+    conn.close()
