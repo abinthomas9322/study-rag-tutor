@@ -17,7 +17,7 @@ Definition-of-Done gate = 100%).
 - [x] 0.4 Canonical CI/CD pipeline (green) ...... 9%  (commit cace8c9)
 
 ## Phase 1 — Core RAG engine (pure, unit-tested)
-- [ ] 1.1 Config + text chunking ................ 14%
+- [x] 1.1 Config + text chunking ................ 14%  (commit f2941c2)
 - [ ] 1.2 Embeddings via fastembed .............. 19%
 - [ ] 1.3 sqlite-vec persistent ingest + retrieve 25%
 - [ ] 1.4 Grounded answer generation (Groq) ..... 31%
@@ -62,8 +62,8 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 9% — Phase 0 (Foundation) complete.
-- **Next slice:** 1.1 — config + text chunking (start of the core RAG engine).
+- **Progress:** 14% — Phase 1 underway.
+- **Next slice:** 1.2 — embeddings via fastembed.
 - **Branch:** `main` (local only — not pushed yet).
 
 ## 🐞 Known issues
