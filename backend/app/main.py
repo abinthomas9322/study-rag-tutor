@@ -14,6 +14,7 @@ from fastapi import FastAPI
 
 from app.db import Database
 from app.routes import router
+from rag.answer import AnswerGenerator
 from rag.config import Settings, get_settings
 from rag.embeddings import Embedder
 from rag.store import DEFAULT_DIM, VectorStore, connect
@@ -24,6 +25,7 @@ def create_app(
     db: Database | None = None,
     store: VectorStore | None = None,
     embedder: Embedder | None = None,
+    generator: AnswerGenerator | None = None,
     settings: Settings | None = None,
 ) -> FastAPI:
     """Build and configure the FastAPI application.
@@ -41,6 +43,7 @@ def create_app(
         raise ValueError("provide both db and store (sharing a connection), or neither")
 
     embedder = embedder or Embedder(settings.embed_model)
+    generator = generator or AnswerGenerator(settings=settings)
 
     app = FastAPI(
         title="Study-Group RAG Tutor",
@@ -50,6 +53,7 @@ def create_app(
     app.state.db = db
     app.state.store = store
     app.state.embedder = embedder
+    app.state.generator = generator
     app.state.settings = settings
 
     @app.get("/health", tags=["system"])

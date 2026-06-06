@@ -2,9 +2,9 @@
 
 from fastapi import APIRouter, HTTPException, UploadFile
 
-from app.deps import DbDep, EmbedderDep, SettingsDep, StoreDep
-from app.schemas import DocumentOut
-from app.services import ingest_pdf
+from app.deps import DbDep, EmbedderDep, GeneratorDep, SettingsDep, StoreDep
+from app.schemas import AnswerOut, AskRequest, DocumentOut, SourceOut
+from app.services import answer_question, ingest_pdf
 
 router = APIRouter()
 
@@ -53,3 +53,32 @@ async def upload_document(
 def list_documents(course_id: str, db: DbDep) -> list[DocumentOut]:
     """List the documents uploaded to a course."""
     return [DocumentOut.model_validate(d) for d in db.list_documents(course_id)]
+
+
+@router.post(
+    "/courses/{course_id}/ask",
+    response_model=AnswerOut,
+    tags=["qa"],
+)
+def ask(
+    course_id: str,
+    body: AskRequest,
+    store: StoreDep,
+    embedder: EmbedderDep,
+    generator: GeneratorDep,
+    settings: SettingsDep,
+) -> AnswerOut:
+    """Answer a question grounded in the course's materials, with citations."""
+    result = answer_question(
+        body.question,
+        course_id,
+        store=store,
+        embedder=embedder,
+        generator=generator,
+        settings=settings,
+    )
+    sources = [
+        SourceOut(document_id=h.document_id, text=h.text, distance=h.distance)
+        for h in result.sources
+    ]
+    return AnswerOut(answer=result.text, sources=sources)

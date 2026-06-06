@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import Depends, Request
 
 from app.db import Database
+from rag.answer import AnswerGenerator
 from rag.config import Settings
 from rag.embeddings import Embedder
 from rag.store import VectorStore
@@ -22,6 +23,10 @@ def get_embedder(request: Request) -> Embedder:
     return request.app.state.embedder
 
 
+def get_generator(request: Request) -> AnswerGenerator:
+    return request.app.state.generator
+
+
 def get_settings_state(request: Request) -> Settings:
     return request.app.state.settings
 
@@ -31,4 +36,5 @@ def get_settings_state(request: Request) -> Settings:
 DbDep = Annotated[Database, Depends(get_db)]
 StoreDep = Annotated[VectorStore, Depends(get_store)]
 EmbedderDep = Annotated[Embedder, Depends(get_embedder)]
+GeneratorDep = Annotated[AnswerGenerator, Depends(get_generator)]
 SettingsDep = Annotated[Settings, Depends(get_settings_state)]

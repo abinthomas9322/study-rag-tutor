@@ -4,6 +4,7 @@ import io
 import uuid
 
 from app.db import Database, Document
+from rag.answer import Answer, AnswerGenerator
 from rag.chunking import chunk_text
 from rag.config import Settings
 from rag.embeddings import Embedder
@@ -43,3 +44,22 @@ def ingest_pdf(
     # mid-embedding never leaves a document recorded without its chunks.
     store.add(course_id, doc_id, chunks, vectors)
     return db.add_document(course_id, filename, num_chunks=len(chunks), doc_id=doc_id)
+
+
+def answer_question(
+    question: str,
+    course_id: str,
+    *,
+    store: VectorStore,
+    embedder: Embedder,
+    generator: AnswerGenerator,
+    settings: Settings,
+) -> Answer:
+    """Answer a question grounded in a course's indexed materials.
+
+    Embeds the question, retrieves the top-k most relevant chunks for that
+    course, and asks the LLM to answer using only those chunks.
+    """
+    query_vector = embedder.embed_query(question)
+    hits = store.search(course_id, query_vector, k=settings.top_k)
+    return generator.generate(question, hits)
