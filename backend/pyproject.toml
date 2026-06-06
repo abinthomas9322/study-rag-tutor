@@ -23,7 +23,12 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-addopts = "-q --cov=rag --cov-report=term-missing"
+addopts = "-q --cov=rag --cov=app --cov-report=term-missing"
+filterwarnings = [
+    # Starlette's TestClient warns about httpx vs httpx2; we keep httpx because
+    # the OpenAI/Groq client depends on it. Third-party noise, not our code.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated:Warning",
+]
 
 [tool.coverage.run]
-source = ["rag"]
+source = ["rag", "app"]

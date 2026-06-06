@@ -61,9 +61,9 @@ jobs:
       - name: Ruff format check
         run: ruff format --check .
       - name: Type check (mypy)
-        run: mypy rag
+        run: mypy rag app
       - name: Security lint (bandit)
-        run: bandit -r rag
+        run: bandit -r rag app
       - name: Dependency audit (pip-audit)
         run: pip-audit -r requirements.txt
       - name: Tests + coverage (pytest)
