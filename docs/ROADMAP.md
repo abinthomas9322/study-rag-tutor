@@ -23,8 +23,8 @@ Definition-of-Done gate = 100%).
 - [x] 1.4 Grounded answer generation (Groq) ..... 31%  (commit 485f3d0)
 
 ## Phase 2 — Backend API (FastAPI + SQLite)
-- [ ] 2.1 App factory + health + typed config ... 35%
-- [ ] 2.2 SQLite models (courses/students/docs) . 39%
+- [x] 2.1 App factory + health + typed config ... 35%  (commit 45d6011)
+- [x] 2.2 SQLite models (courses/students/docs) . 39%  (commit e27a6e7)
 - [ ] 2.3 Upload + ingest endpoint .............. 44%
 - [ ] 2.4 Ask endpoint (cited answers) .......... 48%
 
@@ -62,8 +62,8 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 31% — Phase 1 (core RAG engine) complete.
-- **Next slice:** 2.1 — FastAPI app factory + health + typed config.
+- **Progress:** 39% — Phase 2 underway (API skeleton + data layer done).
+- **Next slice:** 2.3 — upload + ingest endpoint (PDF → chunks → vectors).
 - **Branch:** `main` (local only — not pushed yet).
 
 ## 🐞 Known issues
