@@ -1,0 +1,11 @@
+# Top-level runtime dependencies (human-readable source).
+# The pinned, install-verified versions live in requirements.txt.
+fastapi
+uvicorn[standard]
+python-multipart
+pypdf
+fastembed
+chromadb
+openai
+pydantic-settings
+python-dotenv

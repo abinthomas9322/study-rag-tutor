@@ -1,0 +1,9 @@
+# Developer / CI tooling (human-readable source).
+# Pinned versions live in requirements-dev.txt.
+pytest
+pytest-cov
+httpx
+ruff
+mypy
+bandit
+pip-audit
