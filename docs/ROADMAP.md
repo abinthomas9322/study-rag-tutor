@@ -25,8 +25,8 @@ Definition-of-Done gate = 100%).
 ## Phase 2 — Backend API (FastAPI + SQLite)
 - [x] 2.1 App factory + health + typed config ... 35%  (commit 45d6011)
 - [x] 2.2 SQLite models (courses/students/docs) . 39%  (commit e27a6e7)
-- [ ] 2.3 Upload + ingest endpoint .............. 44%
-- [ ] 2.4 Ask endpoint (cited answers) .......... 48%
+- [x] 2.3 Upload + ingest endpoint .............. 44%  (commits e505b81, e670157)
+- [x] 2.4 Ask endpoint (cited answers) .......... 48%  (commit d11e7db)
 
 ## Phase 3 — Multi-user course spaces
 - [ ] 3.1 Join-a-class + course-scoped docs ..... 53%
@@ -62,8 +62,8 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 39% — Phase 2 underway (API skeleton + data layer done).
-- **Next slice:** 2.3 — upload + ingest endpoint (PDF → chunks → vectors).
+- **Progress:** 48% — Phase 2 (Backend API) complete.
+- **Next slice:** 3.1 — join-a-class flow + explicit course management.
 - **Branch:** `main` (local only — not pushed yet).
 
 ## 🐞 Known issues
