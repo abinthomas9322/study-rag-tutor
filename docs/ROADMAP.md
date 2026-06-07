@@ -40,7 +40,7 @@ Definition-of-Done gate = 100%).
 - [x] 5.2 Join-class screen ..................... 69%  (commit 9c5fd81)
 - [x] 5.3 Upload-materials screen ............... 73%  (commit 732f079)
 - [x] 5.4 Chat Q&A screen (with sources) ........ 78%  (commit 0823c42)
-- [ ] 5.5 Quiz screen ........................... 82%
+- [x] 5.5 Quiz screen ........................... 82%  (commit 9e1f8a4)
 - [ ] 5.6 Progress screen ....................... 85%
 
 ## Phase 6 — Real data & proof (§5)
@@ -62,8 +62,8 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 78% — Phase 5.4 (chat Q&A screen) complete.
-- **Next slice:** 5.5 — Quiz screen.
+- **Progress:** 82% — Phase 5.5 (quiz screen) complete.
+- **Next slice:** 5.6 — Progress screen.
 - **Stack note:** UI is **Vite + React + shadcn/ui** (chosen over Next.js/Streamlit
   for a portfolio-grade UI that stays light on a RAM-constrained dev machine).
 - **Branch:** `main` (local only — not pushed yet).
