@@ -22,6 +22,17 @@ export default defineConfig({
       },
     },
   },
+  // The production preview server proxies /api too, so the built app can reach
+  // the backend during the real-run screenshot capture.
+  preview: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/api/, ""),
+      },
+    },
+  },
   test: {
     globals: true,
     environment: "jsdom",
