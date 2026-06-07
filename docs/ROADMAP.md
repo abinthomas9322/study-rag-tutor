@@ -36,7 +36,7 @@ Definition-of-Done gate = 100%).
 - [x] 4.2 Quiz scoring + per-student storage .... 62%  (commit b74443b)
 
 ## Phase 5 — Frontend (world-class UI, §9b · Vite + React + shadcn/ui)
-- [x] 5.1 Vite + React + shadcn scaffold + tokens 66%  (commit pending)
+- [x] 5.1 Vite + React + shadcn scaffold + tokens 66%  (commit 85c40b0)
 - [ ] 5.2 Join-class screen ..................... 69%
 - [ ] 5.3 Upload-materials screen ............... 73%
 - [ ] 5.4 Chat Q&A screen (with sources) ........ 78%
