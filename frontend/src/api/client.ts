@@ -3,7 +3,10 @@
  * proxied to the FastAPI server by Vite (see vite.config.ts).
  */
 
-const API_BASE = "/api";
+// In dev (and the production preview) requests go to "/api", which Vite proxies
+// to the backend. In a deployed build, set VITE_API_URL to the backend's URL
+// (e.g. https://study-rag-tutor-api.onrender.com) — CORS is enabled server-side.
+const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 
 /** An error carrying the HTTP status, so callers can branch on it (e.g. 404). */
 export class ApiError extends Error {
