@@ -22,8 +22,10 @@ from rag.quiz import (
     Quiz,
     QuizGenerator,
     QuizQuestion,
+    QuizScore,
     build_quiz_messages,
     parse_quiz,
+    score_quiz,
 )
 from rag.store import SearchHit, VectorStore, connect
 
@@ -257,11 +259,14 @@ def test_quiz_endpoint_focused_returns_questions(make_pdf: Callable[..., bytes])
 
     assert resp.status_code == 200
     body = resp.json()
+    assert isinstance(body["id"], str) and body["id"]  # quiz persisted, id returned
     assert len(body["questions"]) == 1
     q = body["questions"][0]
     assert q["stem"] == "What controls entry to the cell?"
     assert len(q["options"]) == OPTIONS_PER_QUESTION
-    assert 0 <= q["correct_index"] < OPTIONS_PER_QUESTION
+    # The answer key is hidden until the student submits an attempt.
+    assert "correct_index" not in q
+    assert "explanation" not in q
     assert len(body["sources"]) >= 1
 
 
@@ -283,6 +288,7 @@ def test_quiz_endpoint_empty_course_returns_empty_quiz() -> None:
 
     assert resp.status_code == 200
     body = resp.json()
+    assert body["id"] is None  # nothing persisted for an empty course
     assert body["questions"] == []
     assert body["sources"] == []
 
@@ -312,4 +318,123 @@ def test_quiz_endpoint_rejects_out_of_range_count(num: int) -> None:
 def test_quiz_endpoint_rejects_overlong_topic() -> None:
     client = _app_client(_quiz_json())
     resp = client.post("/courses/BIO/quiz", json={"topic": "x" * 201, "num_questions": 1})
+    assert resp.status_code == 422
+
+
+# --- Scoring (pure) --------------------------------------------------------
+def test_score_quiz_all_correct() -> None:
+    result = score_quiz([0, 1, 2], [0, 1, 2])
+    assert result == QuizScore(score=3, total=3, correct=[True, True, True])
+
+
+def test_score_quiz_none_correct() -> None:
+    result = score_quiz([0, 1, 2], [3, 3, 3])
+    assert result.score == 0
+    assert result.total == 3
+    assert result.correct == [False, False, False]
+
+
+def test_score_quiz_partial() -> None:
+    result = score_quiz([0, 1, 2], [0, 3, 2])
+    assert result.score == 2
+    assert result.correct == [True, False, True]
+
+
+def test_score_quiz_out_of_range_answer_is_wrong() -> None:
+    assert score_quiz([0], [99]).score == 0
+
+
+def test_score_quiz_length_mismatch_raises() -> None:
+    with pytest.raises(ValueError, match="expected 3 answers, got 2"):
+        score_quiz([0, 1, 2], [0, 1])
+
+
+# --- Submit-attempt endpoint -----------------------------------------------
+def _two_question_quiz() -> str:
+    return _quiz_json(
+        _question("Q1?", correct=0, explanation="because A"),
+        _question("Q2?", correct=2, explanation="because C"),
+    )
+
+
+def _make_quiz_and_student(client: TestClient, make_pdf: Callable[..., bytes]) -> tuple[str, int]:
+    _upload(client, "BIO", "cells.pdf", make_pdf("Course material about cells and energy"))
+    quiz_resp = client.post("/courses/BIO/quiz", json={"topic": "cells", "num_questions": 2})
+    quiz_id = quiz_resp.json()["id"]
+    student_id = client.post("/courses/BIO/join", json={"display_name": "Alice"}).json()["id"]
+    return quiz_id, student_id
+
+
+def test_submit_attempt_scores_and_reveals_key(make_pdf: Callable[..., bytes]) -> None:
+    client = _app_client(_two_question_quiz())
+    quiz_id, student_id = _make_quiz_and_student(client, make_pdf)
+
+    resp = client.post(
+        f"/courses/BIO/quizzes/{quiz_id}/attempts",
+        json={"student_id": student_id, "answers": [0, 0]},
+    )
+
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["score"] == 1  # Q1 right (0), Q2 wrong (chose 0, correct 2)
+    assert body["total"] == 2
+    assert body["quiz_id"] == quiz_id
+    assert body["student_id"] == student_id
+    first, second = body["results"]
+    assert first["your_answer"] == 0
+    assert first["correct_index"] == 0
+    assert first["is_correct"] is True
+    assert second["is_correct"] is False
+    assert second["correct_index"] == 2
+    assert second["explanation"] == "because C"  # key revealed after submitting
+
+
+def test_submit_attempt_all_correct(make_pdf: Callable[..., bytes]) -> None:
+    client = _app_client(_two_question_quiz())
+    quiz_id, student_id = _make_quiz_and_student(client, make_pdf)
+    resp = client.post(
+        f"/courses/BIO/quizzes/{quiz_id}/attempts",
+        json={"student_id": student_id, "answers": [0, 2]},
+    )
+    assert resp.json()["score"] == 2
+
+
+def test_submit_attempt_unknown_quiz_is_404(make_pdf: Callable[..., bytes]) -> None:
+    client = _app_client(_two_question_quiz())
+    _, student_id = _make_quiz_and_student(client, make_pdf)
+    resp = client.post(
+        "/courses/BIO/quizzes/does-not-exist/attempts",
+        json={"student_id": student_id, "answers": [0, 0]},
+    )
+    assert resp.status_code == 404
+
+
+def test_submit_attempt_quiz_from_other_course_is_404(make_pdf: Callable[..., bytes]) -> None:
+    client = _app_client(_two_question_quiz())
+    quiz_id, student_id = _make_quiz_and_student(client, make_pdf)
+    # The quiz belongs to BIO; submitting it under CHEM must not resolve.
+    resp = client.post(
+        f"/courses/CHEM/quizzes/{quiz_id}/attempts",
+        json={"student_id": student_id, "answers": [0, 0]},
+    )
+    assert resp.status_code == 404
+
+
+def test_submit_attempt_student_not_enrolled_is_404(make_pdf: Callable[..., bytes]) -> None:
+    client = _app_client(_two_question_quiz())
+    quiz_id, _ = _make_quiz_and_student(client, make_pdf)
+    resp = client.post(
+        f"/courses/BIO/quizzes/{quiz_id}/attempts",
+        json={"student_id": 9999, "answers": [0, 0]},
+    )
+    assert resp.status_code == 404
+
+
+def test_submit_attempt_wrong_answer_count_is_422(make_pdf: Callable[..., bytes]) -> None:
+    client = _app_client(_two_question_quiz())
+    quiz_id, student_id = _make_quiz_and_student(client, make_pdf)
+    resp = client.post(
+        f"/courses/BIO/quizzes/{quiz_id}/attempts",
+        json={"student_id": student_id, "answers": [0]},  # quiz has 2 questions
+    )
     assert resp.status_code == 422

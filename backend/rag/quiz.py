@@ -48,6 +48,32 @@ class Quiz:
     sources: list[SearchHit]
 
 
+@dataclass(frozen=True)
+class QuizScore:
+    """The result of scoring a set of answers against a quiz's answer key."""
+
+    score: int
+    total: int
+    correct: list[bool]
+
+
+def score_quiz(correct_indices: Sequence[int], answers: Sequence[int]) -> QuizScore:
+    """Score ``answers`` against the quiz's ``correct_indices``.
+
+    A pure, side-effect-free comparison: the i-th answer is correct when it
+    equals the i-th correct option index. Out-of-range answers simply count as
+    wrong (they never match a valid index).
+
+    Raises:
+        ValueError: If the number of answers doesn't match the number of
+            questions — a half-answered quiz can't be scored coherently.
+    """
+    if len(answers) != len(correct_indices):
+        raise ValueError(f"expected {len(correct_indices)} answers, got {len(answers)}")
+    correct = [a == c for c, a in zip(correct_indices, answers, strict=True)]
+    return QuizScore(score=sum(correct), total=len(correct), correct=correct)
+
+
 def build_quiz_messages(
     num_questions: int, hits: Sequence[SearchHit], topic: str | None = None
 ) -> list[dict[str, str]]:

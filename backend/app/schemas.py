@@ -84,16 +84,50 @@ class QuizRequest(BaseModel):
 
 
 class QuizQuestionOut(BaseModel):
-    """One generated multiple-choice question."""
+    """One quiz question as shown to a student taking it (no answer key)."""
 
     stem: str
     options: list[str]
-    correct_index: int
-    explanation: str
 
 
 class QuizOut(BaseModel):
-    """A generated quiz plus the sources its questions were grounded in."""
+    """A generated quiz: its id, its questions, and the sources behind them.
 
+    ``id`` is null when the course has no materials and no quiz was created.
+    The correct answers are deliberately omitted here — they're revealed only
+    after the student submits an attempt.
+    """
+
+    id: str | None
     questions: list[QuizQuestionOut]
     sources: list[SourceOut]
+
+
+class SubmitAttemptRequest(BaseModel):
+    """A student's submitted answers for a quiz (one option index per question)."""
+
+    student_id: int = Field(ge=1, description="The enrolled student's id")
+    answers: list[int] = Field(min_length=1, description="Chosen option index per question")
+
+
+class QuestionResultOut(BaseModel):
+    """Per-question feedback after an attempt, including the correct answer."""
+
+    stem: str
+    options: list[str]
+    your_answer: int
+    correct_index: int
+    is_correct: bool
+    explanation: str
+
+
+class AttemptOut(BaseModel):
+    """A scored quiz attempt plus per-question feedback."""
+
+    id: int
+    quiz_id: str
+    student_id: int
+    score: int
+    total: int
+    submitted_at: str
+    results: list[QuestionResultOut]

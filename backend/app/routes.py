@@ -13,17 +13,20 @@ from app.deps import (
 from app.schemas import (
     AnswerOut,
     AskRequest,
+    AttemptOut,
     CourseOut,
     CreateCourseRequest,
     DocumentOut,
     JoinRequest,
+    QuestionResultOut,
     QuizOut,
     QuizQuestionOut,
     QuizRequest,
     SourceOut,
     StudentOut,
+    SubmitAttemptRequest,
 )
-from app.services import answer_question, generate_quiz, ingest_pdf
+from app.services import answer_question, generate_quiz, ingest_pdf, submit_attempt
 
 router = APIRouter()
 
@@ -157,6 +160,7 @@ def ask(
 def quiz(
     course_id: str,
     body: QuizRequest,
+    db: DbDep,
     store: StoreDep,
     embedder: EmbedderDep,
     quiz_generator: QuizGeneratorDep,
@@ -165,14 +169,17 @@ def quiz(
     """Generate a practice quiz grounded in a course's materials.
 
     With a ``topic`` the quiz focuses on the most relevant chunks; without one
-    it samples broadly across the course. Returns an empty quiz when the course
-    has no materials; 502 if the model returns an unusable response.
+    it samples broadly across the course. The quiz is persisted (with its answer
+    key) and a ``quiz_id`` is returned so it can be taken and scored; the correct
+    answers are not included here. Returns an empty quiz (null id) when the
+    course has no materials; 502 if the model returns an unusable response.
     """
     try:
-        result = generate_quiz(
+        quiz_id, result = generate_quiz(
             course_id,
             num_questions=body.num_questions,
             topic=body.topic,
+            db=db,
             store=store,
             embedder=embedder,
             generator=quiz_generator,
@@ -184,13 +191,57 @@ def quiz(
         SourceOut(document_id=h.document_id, text=h.text, distance=h.distance)
         for h in result.sources
     ]
-    questions = [
-        QuizQuestionOut(
+    questions = [QuizQuestionOut(stem=q.stem, options=q.options) for q in result.questions]
+    return QuizOut(id=quiz_id, questions=questions, sources=sources)
+
+
+@router.post(
+    "/courses/{course_id}/quizzes/{quiz_id}/attempts",
+    status_code=201,
+    response_model=AttemptOut,
+    tags=["quiz"],
+)
+def submit_quiz_attempt(
+    course_id: str,
+    quiz_id: str,
+    body: SubmitAttemptRequest,
+    db: DbDep,
+) -> AttemptOut:
+    """Submit answers for a quiz; score them and store the attempt.
+
+    Returns the score plus per-question feedback (revealing the correct answer
+    and explanation). 404 if the quiz or student isn't part of the course; 422
+    if the number of answers doesn't match the number of questions.
+    """
+    try:
+        attempt, questions = submit_attempt(
+            course_id,
+            quiz_id,
+            student_id=body.student_id,
+            answers=body.answers,
+            db=db,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    results = [
+        QuestionResultOut(
             stem=q.stem,
             options=q.options,
+            your_answer=attempt.answers[i],
             correct_index=q.correct_index,
+            is_correct=attempt.answers[i] == q.correct_index,
             explanation=q.explanation,
         )
-        for q in result.questions
+        for i, q in enumerate(questions)
     ]
-    return QuizOut(questions=questions, sources=sources)
+    return AttemptOut(
+        id=attempt.id,
+        quiz_id=attempt.quiz_id,
+        student_id=attempt.student_id,
+        score=attempt.score,
+        total=attempt.total,
+        submitted_at=attempt.submitted_at,
+        results=results,
+    )

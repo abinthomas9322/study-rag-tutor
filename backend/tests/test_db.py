@@ -2,12 +2,20 @@
 
 import pytest
 
-from app.db import Course, Database, Document, Student
+from app.db import Attempt, Course, Database, Document, QuestionRecord, QuizRecord, Student
+from rag.quiz import QuizQuestion
 from rag.store import VectorStore, connect
 
 
 def _db() -> Database:
     return Database(db_path=":memory:")
+
+
+def _questions() -> list[QuizQuestion]:
+    return [
+        QuizQuestion("Q1?", ["a", "b", "c", "d"], 0, "because a"),
+        QuizQuestion("Q2?", ["w", "x", "y", "z"], 2, "because y"),
+    ]
 
 
 # --- Courses ---------------------------------------------------------------
@@ -115,6 +123,98 @@ def test_list_documents_is_scoped_to_course() -> None:
     db.add_document("BIO", "c.pdf")
     assert {d.filename for d in db.list_documents("CS101")} == {"a.pdf", "b.pdf"}
     assert len(db.list_documents("BIO")) == 1
+
+
+# --- Students: lookup ------------------------------------------------------
+def test_get_student_returns_record() -> None:
+    db = _db()
+    db.create_course("CS101", "Intro")
+    student = db.join_course("CS101", "Alice")
+    assert db.get_student(student.id) == student
+
+
+def test_get_missing_student_returns_none() -> None:
+    assert _db().get_student(123) is None
+
+
+# --- Quizzes ---------------------------------------------------------------
+def test_save_quiz_persists_questions_in_order() -> None:
+    db = _db()
+    db.create_course("BIO", "Biology")
+    quiz_id = db.save_quiz("BIO", "cells", _questions())
+
+    quiz = db.get_quiz(quiz_id)
+    assert isinstance(quiz, QuizRecord)
+    assert quiz.course_id == "BIO"
+    assert quiz.topic == "cells"
+
+    questions = db.list_quiz_questions(quiz_id)
+    assert [q.stem for q in questions] == ["Q1?", "Q2?"]
+    assert [q.position for q in questions] == [0, 1]
+    first = questions[0]
+    assert isinstance(first, QuestionRecord)
+    assert first.options == ["a", "b", "c", "d"]  # round-tripped through JSON
+    assert first.correct_index == 0
+    assert questions[1].correct_index == 2
+
+
+def test_save_quiz_accepts_null_topic() -> None:
+    db = _db()
+    db.create_course("BIO", "Biology")
+    quiz_id = db.save_quiz("BIO", None, _questions())
+    assert db.get_quiz(quiz_id).topic is None
+
+
+def test_save_quiz_missing_course_raises() -> None:
+    with pytest.raises(ValueError, match="not found"):
+        _db().save_quiz("GHOST", "t", _questions())
+
+
+def test_get_missing_quiz_returns_none() -> None:
+    assert _db().get_quiz("nope") is None
+
+
+def test_list_questions_of_missing_quiz_is_empty() -> None:
+    assert _db().list_quiz_questions("nope") == []
+
+
+# --- Quiz attempts ---------------------------------------------------------
+def _seed_attempt_world() -> tuple[Database, str, int]:
+    db = _db()
+    db.create_course("BIO", "Biology")
+    quiz_id = db.save_quiz("BIO", "cells", _questions())
+    student = db.join_course("BIO", "Alice")
+    return db, quiz_id, student.id
+
+
+def test_record_attempt_stores_score_and_answers() -> None:
+    db, quiz_id, student_id = _seed_attempt_world()
+    attempt = db.record_attempt(quiz_id, student_id, score=1, total=2, answers=[0, 1])
+    assert isinstance(attempt, Attempt)
+    assert attempt.score == 1
+    assert attempt.total == 2
+    assert attempt.answers == [0, 1]  # round-tripped through JSON
+    assert attempt.submitted_at
+
+
+def test_list_attempts_for_student_is_scoped() -> None:
+    db, quiz_id, alice = _seed_attempt_world()
+    bob = db.join_course("BIO", "Bob").id
+    db.record_attempt(quiz_id, alice, score=2, total=2, answers=[0, 2])
+    db.record_attempt(quiz_id, bob, score=0, total=2, answers=[1, 1])
+    alice_attempts = db.list_attempts_for_student(alice)
+    assert len(alice_attempts) == 1
+    assert alice_attempts[0].student_id == alice
+
+
+def test_deleting_course_cascades_to_quizzes_and_attempts() -> None:
+    db, quiz_id, student_id = _seed_attempt_world()
+    db.record_attempt(quiz_id, student_id, score=1, total=2, answers=[0, 0])
+    db.conn.execute("delete from courses where id = 'BIO'")
+    db.conn.commit()
+    assert db.get_quiz(quiz_id) is None
+    assert db.list_quiz_questions(quiz_id) == []
+    assert db.list_attempts_for_student(student_id) == []
 
 
 # --- Shared connection with the vector store -------------------------------
