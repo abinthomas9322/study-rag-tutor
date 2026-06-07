@@ -21,6 +21,9 @@ backend/.chroma/
 *.sqlite3
 *.db
 
+# --- Seed: large upstream source cache (the small extracted demo PDF IS committed) ---
+backend/seed/.cache/
+
 # --- Node / Next.js ---
 node_modules/
 .next/
