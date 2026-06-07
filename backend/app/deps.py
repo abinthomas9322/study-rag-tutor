@@ -8,6 +8,7 @@ from app.db import Database
 from rag.answer import AnswerGenerator
 from rag.config import Settings
 from rag.embeddings import Embedder
+from rag.quiz import QuizGenerator
 from rag.store import VectorStore
 
 
@@ -27,6 +28,10 @@ def get_generator(request: Request) -> AnswerGenerator:
     return request.app.state.generator
 
 
+def get_quiz_generator(request: Request) -> QuizGenerator:
+    return request.app.state.quiz_generator
+
+
 def get_settings_state(request: Request) -> Settings:
     return request.app.state.settings
 
@@ -37,4 +42,5 @@ DbDep = Annotated[Database, Depends(get_db)]
 StoreDep = Annotated[VectorStore, Depends(get_store)]
 EmbedderDep = Annotated[Embedder, Depends(get_embedder)]
 GeneratorDep = Annotated[AnswerGenerator, Depends(get_generator)]
+QuizGeneratorDep = Annotated[QuizGenerator, Depends(get_quiz_generator)]
 SettingsDep = Annotated[Settings, Depends(get_settings_state)]

@@ -17,6 +17,7 @@ from app.routes import router
 from rag.answer import AnswerGenerator
 from rag.config import Settings, get_settings
 from rag.embeddings import Embedder
+from rag.quiz import QuizGenerator
 from rag.store import DEFAULT_DIM, VectorStore, connect
 
 
@@ -26,6 +27,7 @@ def create_app(
     store: VectorStore | None = None,
     embedder: Embedder | None = None,
     generator: AnswerGenerator | None = None,
+    quiz_generator: QuizGenerator | None = None,
     settings: Settings | None = None,
 ) -> FastAPI:
     """Build and configure the FastAPI application.
@@ -44,6 +46,7 @@ def create_app(
 
     embedder = embedder or Embedder(settings.embed_model)
     generator = generator or AnswerGenerator(settings=settings)
+    quiz_generator = quiz_generator or QuizGenerator(settings=settings)
 
     app = FastAPI(
         title="Study-Group RAG Tutor",
@@ -54,6 +57,7 @@ def create_app(
     app.state.store = store
     app.state.embedder = embedder
     app.state.generator = generator
+    app.state.quiz_generator = quiz_generator
     app.state.settings = settings
 
     @app.get("/health", tags=["system"])

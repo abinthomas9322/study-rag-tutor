@@ -2,7 +2,14 @@
 
 from fastapi import APIRouter, HTTPException, UploadFile
 
-from app.deps import DbDep, EmbedderDep, GeneratorDep, SettingsDep, StoreDep
+from app.deps import (
+    DbDep,
+    EmbedderDep,
+    GeneratorDep,
+    QuizGeneratorDep,
+    SettingsDep,
+    StoreDep,
+)
 from app.schemas import (
     AnswerOut,
     AskRequest,
@@ -10,10 +17,13 @@ from app.schemas import (
     CreateCourseRequest,
     DocumentOut,
     JoinRequest,
+    QuizOut,
+    QuizQuestionOut,
+    QuizRequest,
     SourceOut,
     StudentOut,
 )
-from app.services import answer_question, ingest_pdf
+from app.services import answer_question, generate_quiz, ingest_pdf
 
 router = APIRouter()
 
@@ -137,3 +147,50 @@ def ask(
         for h in result.sources
     ]
     return AnswerOut(answer=result.text, sources=sources)
+
+
+@router.post(
+    "/courses/{course_id}/quiz",
+    response_model=QuizOut,
+    tags=["quiz"],
+)
+def quiz(
+    course_id: str,
+    body: QuizRequest,
+    store: StoreDep,
+    embedder: EmbedderDep,
+    quiz_generator: QuizGeneratorDep,
+    settings: SettingsDep,
+) -> QuizOut:
+    """Generate a practice quiz grounded in a course's materials.
+
+    With a ``topic`` the quiz focuses on the most relevant chunks; without one
+    it samples broadly across the course. Returns an empty quiz when the course
+    has no materials; 502 if the model returns an unusable response.
+    """
+    try:
+        result = generate_quiz(
+            course_id,
+            num_questions=body.num_questions,
+            topic=body.topic,
+            store=store,
+            embedder=embedder,
+            generator=quiz_generator,
+            settings=settings,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    sources = [
+        SourceOut(document_id=h.document_id, text=h.text, distance=h.distance)
+        for h in result.sources
+    ]
+    questions = [
+        QuizQuestionOut(
+            stem=q.stem,
+            options=q.options,
+            correct_index=q.correct_index,
+            explanation=q.explanation,
+        )
+        for q in result.questions
+    ]
+    return QuizOut(questions=questions, sources=sources)

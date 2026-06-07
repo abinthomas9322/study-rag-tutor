@@ -137,6 +137,29 @@ class VectorStore:
         ).fetchall()
         return [SearchHit(cid, doc, text, dist) for cid, doc, text, dist in rows]
 
+    def sample(self, course_id: str, n: int) -> list[SearchHit]:
+        """Return up to ``n`` chunks spread evenly across a course's material.
+
+        Used to seed a quiz when no topic is given: rather than the first ``n``
+        chunks (which would all come from the start of one document), pick
+        evenly-spaced chunks ordered by id so the sample covers the breadth of
+        the course. Deterministic — the same store yields the same sample.
+        """
+        if n <= 0:
+            raise ValueError("n must be positive")
+        rows = self._conn.execute(
+            "select chunk_id, document_id, text from chunks where course_id = ? order by chunk_id",
+            (course_id,),
+        ).fetchall()
+        if not rows:
+            return []
+        total = len(rows)
+        # Evenly spaced indices across [0, total): i * total // n lands one pick
+        # in each of n equal-width buckets, so the sample spans the material.
+        picked = rows if n >= total else [rows[i * total // n] for i in range(n)]
+        # distance is 0.0: these chunks weren't ranked against a query vector.
+        return [SearchHit(cid, doc, text, 0.0) for cid, doc, text in picked]
+
     def count(self, course_id: str) -> int:
         """How many chunks are stored for a course."""
         (n,) = self._conn.execute(

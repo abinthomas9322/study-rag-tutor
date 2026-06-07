@@ -9,6 +9,7 @@ from rag.chunking import chunk_text
 from rag.config import Settings
 from rag.embeddings import Embedder
 from rag.pdf import extract_text
+from rag.quiz import Quiz, QuizGenerator
 from rag.store import VectorStore
 
 
@@ -63,3 +64,27 @@ def answer_question(
     query_vector = embedder.embed_query(question)
     hits = store.search(course_id, query_vector, k=settings.top_k)
     return generator.generate(question, hits)
+
+
+def generate_quiz(
+    course_id: str,
+    *,
+    num_questions: int,
+    topic: str | None,
+    store: VectorStore,
+    embedder: Embedder,
+    generator: QuizGenerator,
+    settings: Settings,
+) -> Quiz:
+    """Generate a grounded quiz from a course's indexed materials.
+
+    With a ``topic`` we retrieve the chunks most relevant to it (focused quiz);
+    without one we sample evenly across the course (broad quiz). Either way the
+    questions are written only from the retrieved chunks.
+    """
+    if topic:
+        query_vector = embedder.embed_query(topic)
+        hits = store.search(course_id, query_vector, k=settings.top_k)
+    else:
+        hits = store.sample(course_id, n=settings.top_k)
+    return generator.generate(num_questions, hits, topic=topic)

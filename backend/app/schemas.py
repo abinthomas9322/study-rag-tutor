@@ -68,3 +68,32 @@ class AnswerOut(BaseModel):
 
     answer: str
     sources: list[SourceOut]
+
+
+class QuizRequest(BaseModel):
+    """A request to generate a practice quiz from a course's materials."""
+
+    topic: str | None = Field(
+        default=None,
+        max_length=200,
+        description="Optional topic to focus the quiz on; omit for a broad quiz",
+    )
+    num_questions: int = Field(
+        default=5, ge=1, le=10, description="How many questions to generate (1–10)"
+    )
+
+
+class QuizQuestionOut(BaseModel):
+    """One generated multiple-choice question."""
+
+    stem: str
+    options: list[str]
+    correct_index: int
+    explanation: str
+
+
+class QuizOut(BaseModel):
+    """A generated quiz plus the sources its questions were grounded in."""
+
+    questions: list[QuizQuestionOut]
+    sources: list[SourceOut]

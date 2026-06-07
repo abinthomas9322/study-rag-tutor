@@ -68,6 +68,48 @@ def test_empty_course_returns_no_hits() -> None:
     assert _store().search("NONE", [1, 0, 0, 0], k=4) == []
 
 
+# --- Sampling (for topic-less quizzes) -------------------------------------
+def _seed(store: VectorStore, course: str, n: int) -> None:
+    store.add(course, "d", [f"c{i}" for i in range(n)], [[i, 0, 0, 0] for i in range(n)])
+
+
+def test_sample_returns_evenly_spaced_chunks() -> None:
+    store = _store()
+    _seed(store, "C", 10)
+    texts = [h.text for h in store.sample("C", 5)]
+    # i*total//n for total=10, n=5 -> indices 0,2,4,6,8: a spread, not the first 5.
+    assert texts == ["c0", "c2", "c4", "c6", "c8"]
+
+
+def test_sample_returns_all_when_fewer_than_requested() -> None:
+    store = _store()
+    _seed(store, "C", 3)
+    assert [h.text for h in store.sample("C", 5)] == ["c0", "c1", "c2"]
+
+
+def test_sample_is_deterministic() -> None:
+    store = _store()
+    _seed(store, "C", 7)
+    assert store.sample("C", 3) == store.sample("C", 3)
+
+
+def test_sample_is_scoped_to_the_course() -> None:
+    store = _store()
+    _seed(store, "C", 4)
+    store.add("OTHER", "d", ["other"], [[9, 0, 0, 0]])
+    assert all(h.text != "other" for h in store.sample("C", 4))
+
+
+def test_sample_empty_course_returns_empty() -> None:
+    assert _store().sample("NONE", 5) == []
+
+
+@pytest.mark.parametrize("n", [0, -1])
+def test_sample_non_positive_n_raises(n: int) -> None:
+    with pytest.raises(ValueError, match="n must be positive"):
+        _store().sample("C", n)
+
+
 # --- Validation ------------------------------------------------------------
 def test_mismatched_chunks_and_vectors_raise() -> None:
     with pytest.raises(ValueError, match="same length"):
