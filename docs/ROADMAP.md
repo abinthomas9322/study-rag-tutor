@@ -53,7 +53,12 @@ Definition-of-Done gate = 100%).
 - [x] 7.3 JOURNAL + TECHNICAL_REPORT ............ 99%  (commit f06fe9c)
 
 ## Phase 8 — Ship it green (§13)
-- [ ] 8.1 Run Definition-of-Done gate + report .. 100%
+- [x] 8.1 Run Definition-of-Done gate + report .. 100%  (commit pending)
+  - All backend + frontend gates green locally; AI-trace greps clean; zero fake
+    data; docs + diagrams + 6 real screenshots present.
+  - Honest remaining items before a perfect 10/10: README §17–18 (my words),
+    no Docker/compose yet, Lighthouse score not yet measured, full E2E suite
+    (only a Playwright smoke/screenshot script today).
 
 ## Phase 9 — Deploy & push (post-1.0, only on request)
 - [ ] 9.1 Create GitHub repo + push
@@ -62,9 +67,10 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 99% — Phase 7 (documentation & diagrams) complete. Diagrams,
-  canonical README, JOURNAL, and TECHNICAL_REPORT all written and grounded.
-- **Next slice:** 8.1 — run the Definition-of-Done gate and report.
+- **Progress:** 100% of the build — Definition-of-Done gate run; all automated
+  gates green locally, clean single-author history, real data throughout.
+- **Remaining for a perfect 10/10:** README §17–18 (my words), add Docker,
+  measure Lighthouse, broaden E2E. Deploy is Phase 9 (on request).
 - **Stack note:** UI is **Vite + React + shadcn/ui** (chosen over Next.js/Streamlit
   for a portfolio-grade UI that stays light on a RAM-constrained dev machine).
 - **Branch:** `main` (local only — not pushed yet).
