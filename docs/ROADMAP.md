@@ -39,7 +39,7 @@ Definition-of-Done gate = 100%).
 - [x] 5.1 Vite + React + shadcn scaffold + tokens 66%  (commit 85c40b0)
 - [x] 5.2 Join-class screen ..................... 69%  (commit 9c5fd81)
 - [x] 5.3 Upload-materials screen ............... 73%  (commit 732f079)
-- [ ] 5.4 Chat Q&A screen (with sources) ........ 78%
+- [x] 5.4 Chat Q&A screen (with sources) ........ 78%  (commit 0823c42)
 - [ ] 5.5 Quiz screen ........................... 82%
 - [ ] 5.6 Progress screen ....................... 85%
 
@@ -62,8 +62,8 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 73% — Phase 5.3 (upload-materials screen) complete.
-- **Next slice:** 5.4 — Chat Q&A screen (with sources).
+- **Progress:** 78% — Phase 5.4 (chat Q&A screen) complete.
+- **Next slice:** 5.5 — Quiz screen.
 - **Stack note:** UI is **Vite + React + shadcn/ui** (chosen over Next.js/Streamlit
   for a portfolio-grade UI that stays light on a RAM-constrained dev machine).
 - **Branch:** `main` (local only — not pushed yet).
