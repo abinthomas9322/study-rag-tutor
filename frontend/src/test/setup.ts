@@ -17,6 +17,10 @@ Object.defineProperty(window, "matchMedia", {
   }),
 });
 
+// jsdom doesn't implement scrollIntoView; the chat view calls it to follow new
+// messages.
+Element.prototype.scrollIntoView = vi.fn();
+
 afterEach(() => {
   cleanup();
 });

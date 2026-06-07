@@ -14,7 +14,7 @@ interface Action {
   to?: string; // present when the destination screen exists
 }
 
-// Upload is live (slice 5.3); the rest land in later slices and are shown as
+// Cards with a `to` are live; the rest land in later slices and are shown as
 // honest "coming soon" cards rather than faking functionality.
 const ACTIONS: Action[] = [
   {
@@ -27,6 +27,7 @@ const ACTIONS: Action[] = [
     icon: MessagesSquare,
     title: "Ask questions",
     description: "Get answers cited from the materials.",
+    to: "/ask",
   },
   {
     icon: ListChecks,

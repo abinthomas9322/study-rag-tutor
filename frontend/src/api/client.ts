@@ -91,3 +91,27 @@ export async function uploadDocument(courseId: string, file: File): Promise<Cour
   }
   return (await res.json()) as CourseDocument;
 }
+
+export interface Source {
+  document_id: string;
+  text: string;
+  distance: number;
+}
+
+export interface Answer {
+  answer: string;
+  sources: Source[];
+}
+
+/** Ask a question grounded in a course's materials; returns the answer + sources. */
+export async function askQuestion(courseId: string, question: string): Promise<Answer> {
+  const res = await fetch(`${API_BASE}/courses/${encodeURIComponent(courseId)}/ask`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question }),
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return (await res.json()) as Answer;
+}
