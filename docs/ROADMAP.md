@@ -35,8 +35,8 @@ Definition-of-Done gate = 100%).
 - [x] 4.1 Quiz generation endpoint .............. 58%  (commit df766e1)
 - [x] 4.2 Quiz scoring + per-student storage .... 62%  (commit b74443b)
 
-## Phase 5 — Frontend (world-class UI, §9b)
-- [ ] 5.1 Next.js + shadcn scaffold + tokens .... 66%
+## Phase 5 — Frontend (world-class UI, §9b · Vite + React + shadcn/ui)
+- [x] 5.1 Vite + React + shadcn scaffold + tokens 66%  (commit pending)
 - [ ] 5.2 Join-class screen ..................... 69%
 - [ ] 5.3 Upload-materials screen ............... 73%
 - [ ] 5.4 Chat Q&A screen (with sources) ........ 78%
@@ -62,8 +62,10 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 62% — Phase 4 (quiz tutor) complete.
-- **Next slice:** 5.1 — Next.js + shadcn scaffold + tokens (pending UI-stack decision).
+- **Progress:** 66% — Phase 5.1 (frontend scaffold) complete.
+- **Next slice:** 5.2 — Join-class screen.
+- **Stack note:** UI is **Vite + React + shadcn/ui** (chosen over Next.js/Streamlit
+  for a portfolio-grade UI that stays light on a RAM-constrained dev machine).
 - **Branch:** `main` (local only — not pushed yet).
 
 ## 🐞 Known issues
