@@ -33,7 +33,7 @@ Definition-of-Done gate = 100%).
 
 ## Phase 4 — Quiz tutor
 - [x] 4.1 Quiz generation endpoint .............. 58%  (commit df766e1)
-- [ ] 4.2 Quiz scoring + per-student storage .... 62%
+- [x] 4.2 Quiz scoring + per-student storage .... 62%  (commit b74443b)
 
 ## Phase 5 — Frontend (world-class UI, §9b)
 - [ ] 5.1 Next.js + shadcn scaffold + tokens .... 66%
@@ -62,8 +62,8 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 58% — Phase 4.1 (quiz generation endpoint) complete.
-- **Next slice:** 4.2 — quiz scoring + per-student storage.
+- **Progress:** 62% — Phase 4 (quiz tutor) complete.
+- **Next slice:** 5.1 — Next.js + shadcn scaffold + tokens (pending UI-stack decision).
 - **Branch:** `main` (local only — not pushed yet).
 
 ## 🐞 Known issues
