@@ -17,13 +17,13 @@ python_version = "3.12"
 disallow_untyped_defs = true
 warn_unused_ignores = true
 warn_redundant_casts = true
-# Third-party libs (fastembed, chromadb) ship without type stubs.
+# Third-party libs (fastembed, sqlite_vec) ship without type stubs.
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-addopts = "-q --cov=rag --cov=app --cov-report=term-missing"
+addopts = "-q --cov=rag --cov=app --cov-report=term-missing --cov-fail-under=100"
 filterwarnings = [
     # Starlette's TestClient warns about httpx vs httpx2; we keep httpx because
     # the OpenAI/Groq client depends on it. Third-party noise, not our code.
