@@ -44,8 +44,8 @@ Definition-of-Done gate = 100%).
 - [x] 5.6 Progress screen ....................... 85%  (commits 86c4443, 7a11bc4)
 
 ## Phase 6 — Real data & proof (§5)
-- [ ] 6.1 Load real open-licensed course + e2e .. 89%
-- [ ] 6.2 Capture ≥4 real-run screenshots ....... 91%
+- [x] 6.1 Load real open-licensed course + e2e .. 89%  (commit 554eeb8)
+- [x] 6.2 Capture ≥4 real-run screenshots ....... 91%  (commit 699f762)
 
 ## Phase 7 — Documentation & diagrams (§7, §8)
 - [ ] 7.1 Mermaid diagrams (arch/DFD/seq/ER) .... 94%
@@ -62,9 +62,9 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 85% — Phase 5 (frontend) complete. Full app: join → upload →
-  ask → quiz → progress, all real-data-bound.
-- **Next slice:** 6.1 — load a real open-licensed course + end-to-end run.
+- **Progress:** 91% — Phase 6 (real data & proof) complete. App proven running
+  end-to-end on real OpenStax Biology content; 6 real-run screenshots captured.
+- **Next slice:** 7.1 — Mermaid diagrams (architecture, DFD, sequence, ER).
 - **Stack note:** UI is **Vite + React + shadcn/ui** (chosen over Next.js/Streamlit
   for a portfolio-grade UI that stays light on a RAM-constrained dev machine).
 - **Branch:** `main` (local only — not pushed yet).
