@@ -14,6 +14,7 @@ from app.schemas import (
     AnswerOut,
     AskRequest,
     AttemptOut,
+    AttemptSummaryOut,
     CourseOut,
     CreateCourseRequest,
     DocumentOut,
@@ -75,6 +76,28 @@ def join_course(course_id: str, body: JoinRequest, db: DbDep) -> StudentOut:
 def list_students(course_id: str, db: DbDep) -> list[StudentOut]:
     """List the students enrolled in a course."""
     return [StudentOut.model_validate(s) for s in db.list_students(course_id)]
+
+
+@router.get(
+    "/courses/{course_id}/students/{student_id}/attempts",
+    response_model=list[AttemptSummaryOut],
+    tags=["quiz"],
+)
+def list_student_attempts(course_id: str, student_id: int, db: DbDep) -> list[AttemptSummaryOut]:
+    """List a student's past quiz attempts (most recent first).
+
+    404 if the student isn't enrolled in this course.
+    """
+    student = db.get_student(student_id)
+    if student is None or student.course_id != course_id:
+        raise HTTPException(
+            status_code=404,
+            detail=f"student {student_id} is not enrolled in course {course_id!r}",
+        )
+    return [
+        AttemptSummaryOut.model_validate(s)
+        for s in db.list_attempt_summaries_for_student(student_id)
+    ]
 
 
 @router.post(

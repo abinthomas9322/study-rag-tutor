@@ -133,6 +133,18 @@ class Attempt:
     submitted_at: str
 
 
+@dataclass(frozen=True)
+class AttemptSummary:
+    """A lightweight view of an attempt for a student's progress history."""
+
+    id: int
+    quiz_id: str
+    topic: str | None
+    score: int
+    total: int
+    submitted_at: str
+
+
 class Database:
     """Relational store for courses, students, and documents.
 
@@ -297,6 +309,20 @@ class Database:
             Attempt(qid, qz, sid, sc, tot, json.loads(ans), sub)
             for qid, qz, sid, sc, tot, ans, sub in rows
         ]
+
+    def list_attempt_summaries_for_student(self, student_id: int) -> list[AttemptSummary]:
+        """Return a student's attempts (with each quiz's topic) for a progress view.
+
+        Joins quizzes so the history can label each attempt by its topic; most
+        recent attempt first.
+        """
+        rows = self.conn.execute(
+            "select a.id, a.quiz_id, q.topic, a.score, a.total, a.submitted_at "
+            "from quiz_attempts a join quizzes q on q.id = a.quiz_id "
+            "where a.student_id = ? order by a.submitted_at desc, a.id desc",
+            (student_id,),
+        ).fetchall()
+        return [AttemptSummary(*r) for r in rows]
 
     def close(self) -> None:
         """Close the connection unless it was injected (owned by the caller)."""

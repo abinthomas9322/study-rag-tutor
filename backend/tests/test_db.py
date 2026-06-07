@@ -207,6 +207,21 @@ def test_list_attempts_for_student_is_scoped() -> None:
     assert alice_attempts[0].student_id == alice
 
 
+def test_list_attempt_summaries_includes_topic_and_is_ordered() -> None:
+    db, quiz_id, student_id = _seed_attempt_world()  # quiz topic is "cells"
+    db.record_attempt(quiz_id, student_id, score=1, total=2, answers=[0, 0])
+    db.record_attempt(quiz_id, student_id, score=2, total=2, answers=[0, 2])
+    summaries = db.list_attempt_summaries_for_student(student_id)
+    assert len(summaries) == 2
+    assert all(s.topic == "cells" for s in summaries)
+    assert {s.score for s in summaries} == {1, 2}
+
+
+def test_list_attempt_summaries_empty_for_student_without_attempts() -> None:
+    db, _, student_id = _seed_attempt_world()
+    assert db.list_attempt_summaries_for_student(student_id) == []
+
+
 def test_deleting_course_cascades_to_quizzes_and_attempts() -> None:
     db, quiz_id, student_id = _seed_attempt_world()
     db.record_attempt(quiz_id, student_id, score=1, total=2, answers=[0, 0])

@@ -131,3 +131,16 @@ class AttemptOut(BaseModel):
     total: int
     submitted_at: str
     results: list[QuestionResultOut]
+
+
+class AttemptSummaryOut(BaseModel):
+    """A past attempt as shown in a student's progress history."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    quiz_id: str
+    topic: str | None
+    score: int
+    total: int
+    submitted_at: str

@@ -438,3 +438,44 @@ def test_submit_attempt_wrong_answer_count_is_422(make_pdf: Callable[..., bytes]
         json={"student_id": student_id, "answers": [0]},  # quiz has 2 questions
     )
     assert resp.status_code == 422
+
+
+# --- List attempts (progress) ----------------------------------------------
+def test_list_attempts_returns_history_with_topic(make_pdf: Callable[..., bytes]) -> None:
+    client = _app_client(_two_question_quiz())
+    quiz_id, student_id = _make_quiz_and_student(client, make_pdf)  # quiz topic "cells"
+    client.post(
+        f"/courses/BIO/quizzes/{quiz_id}/attempts",
+        json={"student_id": student_id, "answers": [0, 2]},
+    )
+
+    resp = client.get(f"/courses/BIO/students/{student_id}/attempts")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body) == 1
+    assert body[0]["score"] == 2
+    assert body[0]["total"] == 2
+    assert body[0]["topic"] == "cells"
+    assert body[0]["quiz_id"] == quiz_id
+
+
+def test_list_attempts_empty_for_new_student(make_pdf: Callable[..., bytes]) -> None:
+    client = _app_client(_two_question_quiz())
+    _make_quiz_and_student(client, make_pdf)
+    student_id = client.post("/courses/BIO/join", json={"display_name": "Bob"}).json()["id"]
+    resp = client.get(f"/courses/BIO/students/{student_id}/attempts")
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_list_attempts_unknown_student_is_404() -> None:
+    client = _app_client(_two_question_quiz())
+    resp = client.get("/courses/BIO/students/9999/attempts")
+    assert resp.status_code == 404
+
+
+def test_list_attempts_student_from_other_course_is_404(make_pdf: Callable[..., bytes]) -> None:
+    client = _app_client(_two_question_quiz())
+    _, student_id = _make_quiz_and_student(client, make_pdf)  # enrolled in BIO
+    resp = client.get(f"/courses/CHEM/students/{student_id}/attempts")
+    assert resp.status_code == 404
