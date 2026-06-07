@@ -1,4 +1,4 @@
-import { LogOut, MessagesSquare, ListChecks, Upload } from "lucide-react";
+import { LogOut, MessagesSquare, ListChecks, TrendingUp, Upload } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
@@ -33,6 +33,12 @@ const ACTIONS: Action[] = [
     icon: ListChecks,
     title: "Practice quizzes",
     description: "Generate and take scored quizzes.",
+    to: "/quiz",
+  },
+  {
+    icon: TrendingUp,
+    title: "Your progress",
+    description: "Track your quiz scores over time.",
   },
 ];
 
@@ -70,7 +76,7 @@ export function CourseHome() {
         <h2 id="actions-heading" className="text-lg font-semibold">
           What's next
         </h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {ACTIONS.map((action) => {
             const card = (
               <Card

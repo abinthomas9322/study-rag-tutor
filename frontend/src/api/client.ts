@@ -115,3 +115,69 @@ export async function askQuestion(courseId: string, question: string): Promise<A
   }
   return (await res.json()) as Answer;
 }
+
+export interface QuizQuestion {
+  stem: string;
+  options: string[];
+}
+
+export interface Quiz {
+  id: string | null; // null when the course has no materials
+  questions: QuizQuestion[];
+  sources: Source[];
+}
+
+export interface QuestionResult {
+  stem: string;
+  options: string[];
+  your_answer: number;
+  correct_index: number;
+  is_correct: boolean;
+  explanation: string;
+}
+
+export interface Attempt {
+  id: number;
+  quiz_id: string;
+  student_id: number;
+  score: number;
+  total: number;
+  submitted_at: string;
+  results: QuestionResult[];
+}
+
+/** Generate a practice quiz grounded in a course's materials (answer key withheld). */
+export async function generateQuiz(
+  courseId: string,
+  opts: { topic?: string | null; numQuestions: number },
+): Promise<Quiz> {
+  const res = await fetch(`${API_BASE}/courses/${encodeURIComponent(courseId)}/quiz`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ topic: opts.topic ?? null, num_questions: opts.numQuestions }),
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return (await res.json()) as Quiz;
+}
+
+/** Submit answers for a quiz; returns the score and per-question review. */
+export async function submitAttempt(
+  courseId: string,
+  quizId: string,
+  opts: { studentId: number; answers: number[] },
+): Promise<Attempt> {
+  const res = await fetch(
+    `${API_BASE}/courses/${encodeURIComponent(courseId)}/quizzes/${encodeURIComponent(quizId)}/attempts`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ student_id: opts.studentId, answers: opts.answers }),
+    },
+  );
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return (await res.json()) as Attempt;
+}

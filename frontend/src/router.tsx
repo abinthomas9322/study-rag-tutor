@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/app-layout";
 import { AskPage } from "@/routes/ask-page";
 import { CourseHome } from "@/routes/course-home";
 import { JoinPage } from "@/routes/join-page";
+import { QuizPage } from "@/routes/quiz-page";
 import { UploadPage } from "@/routes/upload-page";
 
 export const routes: RouteObject[] = [
@@ -14,6 +15,7 @@ export const routes: RouteObject[] = [
       { path: "course", element: <CourseHome /> },
       { path: "upload", element: <UploadPage /> },
       { path: "ask", element: <AskPage /> },
+      { path: "quiz", element: <QuizPage /> },
     ],
   },
 ];
