@@ -26,9 +26,15 @@ export default tseslint.config(
     },
   },
   {
-    // shadcn/ui primitives and the theme provider intentionally co-export
-    // variant helpers / hooks alongside their component — the canonical pattern.
-    files: ["src/components/ui/**/*.tsx", "src/components/theme-provider.tsx"],
+    // Context providers co-export their hook, shadcn/ui primitives co-export
+    // variant helpers, and test utilities export render helpers — all
+    // intentional; fast-refresh's one-export rule doesn't apply to them.
+    files: [
+      "src/components/ui/**/*.tsx",
+      "src/components/theme-provider.tsx",
+      "src/session/session-context.tsx",
+      "src/test/**/*.tsx",
+    ],
     rules: {
       "react-refresh/only-export-components": "off",
     },

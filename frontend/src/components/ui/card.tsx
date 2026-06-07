@@ -20,12 +20,12 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 CardHeader.displayName = "CardHeader";
 
-const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLHeadingElement>>(
+// Rendered as a div rather than a heading so cards never impose a heading
+// level on the page (which would risk heading-order a11y violations); callers
+// add a real <h2>/<h3> around the card when a section heading is warranted.
+const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    // Content is always supplied by callers via children; the rule can't see
-    // that through the forwarded props on this reusable wrapper.
-    // eslint-disable-next-line jsx-a11y/heading-has-content
-    <h3
+    <div
       ref={ref}
       className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
       {...props}
