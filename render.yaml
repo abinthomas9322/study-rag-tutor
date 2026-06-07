@@ -1,0 +1,16 @@
+# Render blueprint for the backend API (Docker). Connect the repo in the Render
+# dashboard, then set GROQ_API_KEY (and optionally CORS_ORIGINS) as env vars.
+# The frontend is deployed separately on Vercel — see docs/DEPLOY.md.
+services:
+  - type: web
+    name: study-rag-tutor-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false # set in the dashboard; never committed
+      - key: CORS_ORIGINS
+        sync: false # set to your Vercel URL, e.g. https://study-rag-tutor.vercel.app

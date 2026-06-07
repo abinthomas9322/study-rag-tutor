@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     # --- Storage (SQLite file holds both relational data and vectors) ---
     db_path: str = "backend/tutor.db"
 
+    # --- CORS (comma-separated origins; "*" allows any — fine for a public demo) ---
+    cors_origins: str = "*"
+
 
 def get_settings() -> Settings:
     """Build a Settings instance, reading the environment at call time."""

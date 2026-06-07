@@ -11,6 +11,7 @@ won't open a database).
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import Database
 from app.routes import router
@@ -52,6 +53,15 @@ def create_app(
         title="Study-Group RAG Tutor",
         version="0.1.0",
         description="Shared, course-scoped RAG study assistant.",
+    )
+    # In production the SPA is served from a different origin (Vercel), so the
+    # browser needs CORS. In local dev the Vite proxy makes calls same-origin,
+    # so this is a no-op there.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[o.strip() for o in settings.cors_origins.split(",")],
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
     app.state.db = db
     app.state.store = store
