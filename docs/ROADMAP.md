@@ -32,7 +32,7 @@ Definition-of-Done gate = 100%).
 - [x] 3.1 Join-a-class + course-scoped docs ..... 53%  (commit b6cc783)
 
 ## Phase 4 — Quiz tutor
-- [ ] 4.1 Quiz generation endpoint .............. 58%
+- [x] 4.1 Quiz generation endpoint .............. 58%  (commit df766e1)
 - [ ] 4.2 Quiz scoring + per-student storage .... 62%
 
 ## Phase 5 — Frontend (world-class UI, §9b)
@@ -62,8 +62,8 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 53% — Phase 3 (multi-user course spaces) complete.
-- **Next slice:** 4.1 — quiz generation endpoint.
+- **Progress:** 58% — Phase 4.1 (quiz generation endpoint) complete.
+- **Next slice:** 4.2 — quiz scoring + per-student storage.
 - **Branch:** `main` (local only — not pushed yet).
 
 ## 🐞 Known issues
