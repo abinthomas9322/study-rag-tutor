@@ -1,21 +1,39 @@
 import { LogOut, MessagesSquare, ListChecks, Upload } from "lucide-react";
-import { Navigate, useNavigate } from "react-router-dom";
+import type { LucideIcon } from "lucide-react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { useSession } from "@/session/session-context";
 
-// The actions that land in later slices (5.3–5.6); shown disabled for now so
-// the course home is honest about what's coming without faking functionality.
-const UPCOMING = [
-  { icon: Upload, title: "Upload materials", description: "Add course PDFs to the shared space." },
+interface Action {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  to?: string; // present when the destination screen exists
+}
+
+// Upload is live (slice 5.3); the rest land in later slices and are shown as
+// honest "coming soon" cards rather than faking functionality.
+const ACTIONS: Action[] = [
+  {
+    icon: Upload,
+    title: "Upload materials",
+    description: "Add course PDFs to the shared space.",
+    to: "/upload",
+  },
   {
     icon: MessagesSquare,
     title: "Ask questions",
     description: "Get answers cited from the materials.",
   },
-  { icon: ListChecks, title: "Practice quizzes", description: "Generate and take scored quizzes." },
-] as const;
+  {
+    icon: ListChecks,
+    title: "Practice quizzes",
+    description: "Generate and take scored quizzes.",
+  },
+];
 
 export function CourseHome() {
   const { session, endSession } = useSession();
@@ -47,23 +65,43 @@ export function CourseHome() {
         </Button>
       </div>
 
-      <section aria-labelledby="next-heading" className="mt-10">
-        <h2 id="next-heading" className="text-lg font-semibold">
+      <section aria-labelledby="actions-heading" className="mt-10">
+        <h2 id="actions-heading" className="text-lg font-semibold">
           What's next
         </h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          {UPCOMING.map((item) => (
-            <Card key={item.title} className="h-full opacity-80">
-              <CardHeader>
-                <item.icon className="size-6 text-primary" aria-hidden="true" />
-                <CardTitle className="text-base">{item.title}</CardTitle>
-                <CardDescription>{item.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <span className="text-xs font-medium text-muted-foreground">Coming soon</span>
-              </CardContent>
-            </Card>
-          ))}
+          {ACTIONS.map((action) => {
+            const card = (
+              <Card
+                className={cn(
+                  "h-full transition-colors",
+                  action.to ? "focus-within:border-primary hover:border-primary" : "opacity-80",
+                )}
+              >
+                <CardHeader>
+                  <action.icon className="size-6 text-primary" aria-hidden="true" />
+                  <CardTitle className="text-base">{action.title}</CardTitle>
+                  <CardDescription>{action.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {action.to ? "Open" : "Coming soon"}
+                  </span>
+                </CardContent>
+              </Card>
+            );
+            return action.to ? (
+              <Link
+                key={action.title}
+                to={action.to}
+                className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                {card}
+              </Link>
+            ) : (
+              <div key={action.title}>{card}</div>
+            );
+          })}
         </div>
       </section>
     </div>

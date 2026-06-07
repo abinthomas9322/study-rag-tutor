@@ -60,3 +60,34 @@ export async function joinCourse(courseId: string, displayName: string): Promise
   }
   return (await res.json()) as Student;
 }
+
+export interface CourseDocument {
+  id: string;
+  course_id: string;
+  filename: string;
+  num_chunks: number;
+  uploaded_at: string;
+}
+
+/** List the documents uploaded to a course. */
+export async function listDocuments(courseId: string): Promise<CourseDocument[]> {
+  const res = await fetch(`${API_BASE}/courses/${encodeURIComponent(courseId)}/documents`);
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return (await res.json()) as CourseDocument[];
+}
+
+/** Upload one PDF into a course; it is chunked, embedded, and indexed server-side. */
+export async function uploadDocument(courseId: string, file: File): Promise<CourseDocument> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`${API_BASE}/courses/${encodeURIComponent(courseId)}/documents`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return (await res.json()) as CourseDocument;
+}
