@@ -182,27 +182,91 @@ the browser until an attempt is scored. More detail in the
 
 ## Productionizing & scaling
 
-✍️ _TODO: my words_
+The current build runs locally and is sized for a single trusted study group.
+To take it to real scale I'd:
+
+- Add a real **identity/auth** layer and enable **CORS** (today students are
+  display names within a course, and local use relies on the dev proxy).
+- Move from a single SQLite file to **Postgres + pgvector** (or a managed vector
+  DB) so a class of ~200 can read and write concurrently without contention.
+- Push PDF ingestion onto a **background queue** (e.g. Celery/RQ) so large
+  uploads don't block requests, and cache embeddings.
+- **Rate-limit and retry** the Groq calls, and add observability — structured
+  logs, metrics, and traces around retrieval and generation.
+- **Containerize** (Docker + compose) and run FastAPI behind a load balancer,
+  serving the built SPA from a CDN.
 
 ## Key technical decisions & why
 
-✍️ _TODO: my words_
+- **sqlite-vec over ChromaDB** — ChromaDB carried a critical pre-auth RCE
+  advisory with no fix; switching dodged it *and* simplified the design, since
+  relational data and vectors now share one SQLite file and one connection.
+- **fastembed (ONNX, CPU) over a PyTorch embedder** — runs the embedding model
+  locally with no GPU and a small memory footprint, keeping the app free to run
+  and friendly to constrained hardware.
+- **Server-side quiz answer key** — the generated key is persisted and withheld
+  from the API response until an attempt is submitted, so answers can't leak to
+  the client.
+- **Vite + React + shadcn/ui over Next.js / Streamlit** — a portfolio-grade,
+  accessible UI that stays light in development (no SSR server).
+- **Grounding short-circuit** — when retrieval finds nothing the LLM is never
+  called; the app returns an honest "I don't know" instead of guessing.
+- **App-factory + dependency injection** — no module-level app instance, so
+  imports have no side effects and tests inject their own db/store/LLM doubles.
 
 ## Engineering standards I followed (and skipped)
 
-✍️ _TODO: my words_
+**Followed:**
+- Built in small, tested slices — one coherent change per commit, never starting
+  the next until the current was green.
+- **100% backend coverage, enforced in CI** (`--cov-fail-under=100`); frontend
+  render/interaction/accessibility tests.
+- Conventional, human-written commits; a clean single-author history.
+- Security scanning wired from day one (gitleaks, Trivy, CodeQL, bandit,
+  pip-audit, npm audit).
+- A real design-token system, light/dark theming, and explicit loading/empty/
+  error states throughout the UI.
+
+**Skipped (knowingly, for now):**
+- No **Docker**/compose yet — local quick-start instead.
+- No **auth** — students are display names within a course.
+- **Stateless chat** — each question is answered independently.
+- No full browser-E2E framework — a Playwright script drives the screenshot
+  capture and doubles as a live smoke test, but there's no broader E2E suite.
+- **SQLite**, not Postgres — perfect for a study group, not for high concurrency.
 
 ## How I used AI tools in development
 
-✍️ _TODO: my words_
+> ✍️ _Draft — replace with my own words._
+>
+> I built this with Claude Code driven by a strict rules file: work in small
+> tested slices, never ship fake data, write tests with every feature, and keep
+> the git history clean and human (no AI traces). I reviewed every diff and
+> owned the architecture calls myself — the sqlite-vec swap, the server-side
+> quiz key, the Vite/React UI choice. I trusted it less on _[security
+> assumptions / prompt wording / dependency choices — fill in]_ and verified
+> those by hand.
 
 ## What I'd do differently with more time
 
-✍️ _TODO: my words_
+> ✍️ _Draft — replace with my own words._
+>
+> With more time I'd add real authentication and a hosted deployment first, then
+> richer retrieval (re-ranking and conversation memory so follow-up questions
+> keep context), a background ingestion pipeline for large documents, and a
+> broader end-to-end test suite. _[Add the things you'd prioritise.]_
 
 ## Edge cases knowingly skipped
 
-✍️ _TODO: my words_
+- **Scanned / image-only PDFs** — there's no OCR, so a PDF with no text layer is
+  rejected with a clear message rather than silently indexing nothing.
+- **Very large PDFs** — ingestion is synchronous; a huge upload would block the
+  request (see *Productionizing* for the queue fix).
+- **Duplicate uploads** and **non-English content** aren't specially handled.
+- **Prompt injection inside uploaded documents** — the grounding prompt mitigates
+  it, but malicious content in source PDFs isn't sanitized.
+- **Heavy concurrent writes** — SQLite serializes writes; fine for one class, not
+  for many simultaneous uploads at scale.
 
 ## License
 
