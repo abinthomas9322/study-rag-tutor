@@ -162,6 +162,26 @@ export async function generateQuiz(
   return (await res.json()) as Quiz;
 }
 
+export interface AttemptSummary {
+  id: number;
+  quiz_id: string;
+  topic: string | null;
+  score: number;
+  total: number;
+  submitted_at: string;
+}
+
+/** List a student's past quiz attempts (most recent first). */
+export async function listAttempts(courseId: string, studentId: number): Promise<AttemptSummary[]> {
+  const res = await fetch(
+    `${API_BASE}/courses/${encodeURIComponent(courseId)}/students/${studentId}/attempts`,
+  );
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return (await res.json()) as AttemptSummary[];
+}
+
 /** Submit answers for a quiz; returns the score and per-question review. */
 export async function submitAttempt(
   courseId: string,

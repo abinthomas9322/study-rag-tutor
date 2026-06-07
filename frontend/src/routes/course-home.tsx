@@ -4,18 +4,15 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { useSession } from "@/session/session-context";
 
 interface Action {
   icon: LucideIcon;
   title: string;
   description: string;
-  to?: string; // present when the destination screen exists
+  to: string;
 }
 
-// Cards with a `to` are live; the rest land in later slices and are shown as
-// honest "coming soon" cards rather than faking functionality.
 const ACTIONS: Action[] = [
   {
     icon: Upload,
@@ -39,6 +36,7 @@ const ACTIONS: Action[] = [
     icon: TrendingUp,
     title: "Your progress",
     description: "Track your quiz scores over time.",
+    to: "/progress",
   },
 ];
 
@@ -77,38 +75,24 @@ export function CourseHome() {
           What's next
         </h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {ACTIONS.map((action) => {
-            const card = (
-              <Card
-                className={cn(
-                  "h-full transition-colors",
-                  action.to ? "focus-within:border-primary hover:border-primary" : "opacity-80",
-                )}
-              >
+          {ACTIONS.map((action) => (
+            <Link
+              key={action.title}
+              to={action.to}
+              className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <Card className="h-full transition-colors focus-within:border-primary hover:border-primary">
                 <CardHeader>
                   <action.icon className="size-6 text-primary" aria-hidden="true" />
                   <CardTitle className="text-base">{action.title}</CardTitle>
                   <CardDescription>{action.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {action.to ? "Open" : "Coming soon"}
-                  </span>
+                  <span className="text-xs font-medium text-muted-foreground">Open</span>
                 </CardContent>
               </Card>
-            );
-            return action.to ? (
-              <Link
-                key={action.title}
-                to={action.to}
-                className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                {card}
-              </Link>
-            ) : (
-              <div key={action.title}>{card}</div>
-            );
-          })}
+            </Link>
+          ))}
         </div>
       </section>
     </div>
