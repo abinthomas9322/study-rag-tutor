@@ -37,7 +37,7 @@ Definition-of-Done gate = 100%).
 
 ## Phase 5 — Frontend (world-class UI, §9b · Vite + React + shadcn/ui)
 - [x] 5.1 Vite + React + shadcn scaffold + tokens 66%  (commit 85c40b0)
-- [ ] 5.2 Join-class screen ..................... 69%
+- [x] 5.2 Join-class screen ..................... 69%  (commit 9c5fd81)
 - [ ] 5.3 Upload-materials screen ............... 73%
 - [ ] 5.4 Chat Q&A screen (with sources) ........ 78%
 - [ ] 5.5 Quiz screen ........................... 82%
@@ -62,8 +62,8 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 66% — Phase 5.1 (frontend scaffold) complete.
-- **Next slice:** 5.2 — Join-class screen.
+- **Progress:** 69% — Phase 5.2 (join-a-class screen) complete.
+- **Next slice:** 5.3 — Upload-materials screen.
 - **Stack note:** UI is **Vite + React + shadcn/ui** (chosen over Next.js/Streamlit
   for a portfolio-grade UI that stays light on a RAM-constrained dev machine).
 - **Branch:** `main` (local only — not pushed yet).
