@@ -48,9 +48,9 @@ Definition-of-Done gate = 100%).
 - [x] 6.2 Capture ≥4 real-run screenshots ....... 91%  (commit 699f762)
 
 ## Phase 7 — Documentation & diagrams (§7, §8)
-- [ ] 7.1 Mermaid diagrams (arch/DFD/seq/ER) .... 94%
-- [ ] 7.2 Canonical 21-section README ........... 97%
-- [ ] 7.3 JOURNAL + TECHNICAL_REPORT ............ 99%
+- [x] 7.1 Mermaid diagrams (arch/DFD/seq/ER) .... 94%  (commit 5ed9b30)
+- [x] 7.2 Canonical 21-section README ........... 97%  (commit bc1789a)
+- [x] 7.3 JOURNAL + TECHNICAL_REPORT ............ 99%  (commit f06fe9c)
 
 ## Phase 8 — Ship it green (§13)
 - [ ] 8.1 Run Definition-of-Done gate + report .. 100%
@@ -62,9 +62,9 @@ Definition-of-Done gate = 100%).
 ---
 
 ## 📍 Current position
-- **Progress:** 91% — Phase 6 (real data & proof) complete. App proven running
-  end-to-end on real OpenStax Biology content; 6 real-run screenshots captured.
-- **Next slice:** 7.1 — Mermaid diagrams (architecture, DFD, sequence, ER).
+- **Progress:** 99% — Phase 7 (documentation & diagrams) complete. Diagrams,
+  canonical README, JOURNAL, and TECHNICAL_REPORT all written and grounded.
+- **Next slice:** 8.1 — run the Definition-of-Done gate and report.
 - **Stack note:** UI is **Vite + React + shadcn/ui** (chosen over Next.js/Streamlit
   for a portfolio-grade UI that stays light on a RAM-constrained dev machine).
 - **Branch:** `main` (local only — not pushed yet).
