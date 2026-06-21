@@ -33,8 +33,12 @@ From then on, every student can:
 
 ## Live demo
 
-Not deployed yet — it runs locally (see [Quick start](#quick-start)). A free
-hosted deployment is tracked as Phase 9 in the [roadmap](docs/ROADMAP.md).
+🌐 **[study-rag-tutor-st8w-3uf3xvqrt-abinthomas9322s-projects.vercel.app](https://study-rag-tutor-st8w-3uf3xvqrt-abinthomas9322s-projects.vercel.app)** —
+the API on [Render](https://dashboard.render.com) and the SPA on [Vercel](https://vercel.com),
+both on free tiers. The demo course **BIO101** is seeded into the backend image
+at build time, so the live app starts with real OpenStax content already
+indexed. See [docs/DEPLOY.md](docs/DEPLOY.md) + [docs/RUNBOOK.md](docs/RUNBOOK.md)
+for how it's hosted.
 
 ## Cost
 

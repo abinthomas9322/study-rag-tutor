@@ -62,12 +62,10 @@ Definition-of-Done gate = 100%).
 
 ## Phase 9 — Deploy & push (post-1.0, only on request)
 - [x] 9.1 Create GitHub repo + push ............. (pushed to origin/main)
-- [~] 9.2 Deploy free + live demo link
-  - Deploy-ready: Dockerfile (seeds the demo course at build), render.yaml,
-    CORS, configurable VITE_API_URL, Vercel SPA rewrites, and docs/DEPLOY.md.
-  - Pending: the actual Render + Vercel deploy (needs the owner's accounts),
-    then add the live demo URL to the README. Docker image not yet built
-    locally (no Docker here) — Render's build is the first real build.
+- [x] 9.2 Deploy free + live demo link
+  - Live: backend on Render (Docker, free), frontend on Vercel (free), CORS
+    locked to the Vercel origin. /health self-reports build metadata
+    (demo_seeded: true). Live demo URL added to README.
 
 ---
 
