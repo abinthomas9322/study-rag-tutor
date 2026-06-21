@@ -13,6 +13,7 @@ won't open a database).
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import __version__
 from app.db import Database
 from app.routes import router
 from rag.answer import AnswerGenerator
@@ -20,6 +21,12 @@ from rag.config import Settings, get_settings
 from rag.embeddings import Embedder
 from rag.quiz import QuizGenerator
 from rag.store import DEFAULT_DIM, VectorStore, connect
+
+# The id of the demo course that ``seed.seed_demo`` bakes into the Docker image.
+# ``/health`` uses it to self-report whether the deploy has real data — if the
+# build step silently failed, ``demo_seeded`` will be ``false`` and an operator
+# can see it on the Render dashboard without reading the API logs.
+DEMO_COURSE_ID = "BIO101"
 
 
 def create_app(
@@ -51,7 +58,7 @@ def create_app(
 
     app = FastAPI(
         title="Study-Group RAG Tutor",
-        version="0.1.0",
+        version=__version__,
         description="Shared, course-scoped RAG study assistant.",
     )
     # In production the SPA is served from a different origin (Vercel), so the
@@ -71,9 +78,25 @@ def create_app(
     app.state.settings = settings
 
     @app.get("/health", tags=["system"])
-    def health() -> dict[str, str]:
-        """Liveness probe — returns ok when the service is up."""
-        return {"status": "ok"}
+    def health() -> dict[str, object]:
+        """Liveness probe with build metadata — returns 200 when the process is up.
+
+        Beyond the plain ``status`` field, the payload reports:
+
+        - ``version``      — the API version this image is running.
+        - ``demo_seeded``  — whether the demo course baked in at image build
+                             time is present. Useful for verifying a Render
+                             deploy actually finished the seed step.
+        - ``db_kind``      — the storage backend (``"sqlite"`` for now).
+        - ``db_path``      — the SQLite file the app is using.
+        """
+        return {
+            "status": "ok",
+            "version": __version__,
+            "demo_seeded": db.get_course(DEMO_COURSE_ID) is not None,
+            "db_kind": "sqlite",
+            "db_path": settings.db_path,
+        }
 
     app.include_router(router)
     return app
