@@ -1,6 +1,12 @@
 # Render blueprint for the backend API (Docker). Connect the repo in the Render
 # dashboard, then set GROQ_API_KEY (and optionally CORS_ORIGINS) as env vars.
 # The frontend is deployed separately on Vercel — see docs/DEPLOY.md.
+#
+# After deployment, GET /health returns the build metadata that proves the
+# demo course was seeded into the image:
+#   {"status":"ok","version":"0.1.0","demo_seeded":true,"db_kind":"sqlite", ...}
+# If demo_seeded is false on a live deploy, the seed step failed silently —
+# trigger a manual rebuild from the Render dashboard.
 services:
   - type: web
     name: study-rag-tutor-api
@@ -8,7 +14,17 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
+    # Health check pings /health (a liveness probe with build metadata). Render
+    # restarts the container if this fails, and the dashboard surfaces the
+    # payload so an operator can verify a deploy without reading logs.
     healthCheckPath: /health
+    # Pin to one instance — the free tier only supports one, and stating it
+    # explicitly here keeps the Blueprint re-deployable without surprises if
+    # Render's default ever changes.
+    numInstances: 1
+    # Auto-deploy on push to main so the demo image rebuilds whenever the
+    # backend changes. Disable in the dashboard if you prefer manual deploys.
+    autoDeploy: true
     envVars:
       - key: GROQ_API_KEY
         sync: false # set in the dashboard; never committed

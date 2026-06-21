@@ -22,7 +22,21 @@ demo course is always present, but new uploads/quiz history reset on restart.
    - `CORS_ORIGINS` = `*` for now (tighten to your Vercel URL in step 3)
 5. Create the service. The first build downloads the embedding model and seeds
    the course, so it takes a few minutes. When live, check
-   `https://<your-api>.onrender.com/health` → `{"status":"ok"}`.
+   `https://<your-api>.onrender.com/health` — it should look like:
+
+   ```json
+   {
+     "status": "ok",
+     "version": "0.1.0",
+     "demo_seeded": true,
+     "db_kind": "sqlite",
+     "db_path": "tutor.db"
+   }
+   ```
+
+   `demo_seeded: true` means the build's seed step produced a real BIO101
+   record. If it's `false`, the seed failed silently — trigger a manual
+   rebuild from the Render dashboard and read the build log.
 
 ## 2. Frontend → Vercel
 
@@ -41,8 +55,17 @@ API only accepts requests from your frontend.
 
 Open the Vercel URL, join class **BIO101**, and ask a question / take a quiz.
 
-> **Note:** the free Render service sleeps when idle, so the first request after
-> a while has a ~30s cold start. Once warm it's snappy.
+## Free-tier notes
+
+- **Cold starts.** The Render free plan sleeps the service after ~15 min of
+  inactivity. The first request after sleep takes ~30 s; subsequent ones are
+  snappy. This is a free-tier trade-off — the paid plan removes it.
+- **Ephemeral disk.** The SQLite file lives on the container's disk, so any
+  uploaded PDFs and quiz history are wiped on restart / redeploy. The demo
+  course is rebuilt into the image at every build, so it's always present.
+- **One instance.** Free Render only allows one container, so the app isn't
+  horizontally scalable on this tier. Plenty for a portfolio demo; for a real
+  class you'd want a paid plan plus a persistent disk or a managed database.
 
 ## Updating the live demo link
 
