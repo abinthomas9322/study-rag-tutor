@@ -31,6 +31,9 @@ out/
 frontend/.env*.local
 npm-debug.log*
 
+# --- Lighthouse: full per-route reports (large, regenerable; summary.md is committed) ---
+docs/lighthouse/*.json
+
 # --- OS / editor ---
 .DS_Store
 Thumbs.db

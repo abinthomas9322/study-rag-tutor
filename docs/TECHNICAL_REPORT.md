@@ -148,9 +148,28 @@ build, npm audit). Versions are pinned via requirements and the npm lockfile;
 
 ## 12. Measured results
 
-- Demo course: 2 documents → **185 indexed chunks**.
+- Demo course: 3 documents → **290 indexed chunks**.
 - Backend: **100% line coverage** (enforced), 606 measured statements.
 - Frontend: **40 tests** passing; production build clean; **0** npm audit
   vulnerabilities.
 - Verified live end-to-end: a grounded answer with four cited sources, and a
   generated, scored photosynthesis quiz.
+
+### 12.1 Lighthouse
+
+Run against the **production build** (`vite preview`) on every screen, desktop
+form factor, via `frontend/scripts/lighthouse.mjs` (see
+[`docs/lighthouse/`](lighthouse/) for the methodology and raw reports).
+
+| Route | Performance | Accessibility | Best practices | SEO |
+|---|---|---|---|---|
+| `/` (join) | 97 | 100 | 100 | 91 |
+| `/course` | 97 | 100 | 100 | 91 |
+| `/upload` | 97 | 100 | 100 | 91 |
+| `/ask` | 97 | 100 | 100 | 91 |
+| `/quiz` | 97 | 100 | 100 | 91 |
+| `/progress` | 96 | 100 | 100 | 91 |
+
+Every screen clears the §9b bar (≥ 90 on performance, accessibility, and
+best-practices). Accessibility is a perfect 100 across the app, backing the
+automated `vitest-axe` checks with a real audit.

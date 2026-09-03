@@ -230,6 +230,9 @@ To take it to real scale I'd:
   pip-audit, npm audit).
 - A real design-token system, light/dark theming, and explicit loading/empty/
   error states throughout the UI.
+- **Lighthouse ≥ 90 on every screen** — measured on the production build
+  (performance 96–97, accessibility **100**, best-practices **100**); see
+  [`docs/lighthouse/`](docs/lighthouse/).
 
 **Skipped (knowingly, for now):**
 - No **Docker**/compose yet — local quick-start instead.
