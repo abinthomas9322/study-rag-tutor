@@ -59,7 +59,7 @@ flowchart TB
   STORE --> SQLITE
 
   EMB -->|"all-MiniLM-L6-v2<br/>(ONNX, local, free)"| FASTEMBED["fastembed runtime"]
-  ANS -->|"chat completions"| GROQ["Groq API<br/>llama-3.3-70b-versatile"]
+  ANS -->|"chat completions"| GROQ["Groq API<br/>openai/gpt-oss-120b"]
   QUIZ -->|"chat completions<br/>(JSON mode)"| GROQ
 ```
 

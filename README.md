@@ -178,7 +178,7 @@ The core is a classic **retrieval-augmented generation** loop, kept honest:
    `sqlite-vec` table, partitioned by course).
 2. **Retrieve** — embed the question, run a course-scoped similarity search for
    the top-k chunks.
-3. **Generate** — the LLM (Groq `llama-3.3-70b-versatile`) is instructed to answer
+3. **Generate** — the LLM (Groq `openai/gpt-oss-120b`) is instructed to answer
    **only** from the retrieved context and to cite `[Source N]`. If retrieval is
    empty, the LLM is never called — the app returns an honest "I don't know".
 
