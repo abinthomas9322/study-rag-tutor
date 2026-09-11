@@ -100,6 +100,9 @@ bandit -r rag app
 
 # frontend (from frontend/)
 npm run lint && npm run typecheck && npm run test:run && npm run build
+
+# full-stack end-to-end (from frontend/, needs the backend running — see frontend/e2e/README.md)
+npm run test:e2e
 ```
 
 ## CI/CD pipeline
@@ -238,8 +241,10 @@ To take it to real scale I'd:
 - No **Docker**/compose yet — local quick-start instead.
 - No **auth** — students are display names within a course.
 - **Stateless chat** — each question is answered independently.
-- No full browser-E2E framework — a Playwright script drives the screenshot
-  capture and doubles as a live smoke test, but there's no broader E2E suite.
+- **E2E runs locally, not in CI** — a Playwright suite (`frontend/e2e/`) drives
+  the real stack through the whole journey plus the error paths, but because
+  the happy path calls the real LLM it needs a key and isn't a CI gate; CI
+  covers the units and the backend suite at 100%.
 - **SQLite**, not Postgres — perfect for a study group, not for high concurrency.
 
 ## How I used AI tools in development

@@ -40,7 +40,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.{test,spec}.{ts,tsx}", "src/test/**"],
+    files: ["**/*.{test,spec}.{ts,tsx}", "src/test/**", "e2e/**", "playwright.config.ts"],
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
     },

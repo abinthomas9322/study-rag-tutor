@@ -38,5 +38,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     css: true,
+    // The e2e/ directory holds Playwright specs (run via `npm run test:e2e`),
+    // not Vitest ones — without this, Vitest tries to import them too and
+    // crashes because they call Playwright's test() outside its runner.
+    exclude: ["**/node_modules/**", "**/dist/**", "e2e/**"],
   },
 });

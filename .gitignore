@@ -34,6 +34,12 @@ npm-debug.log*
 # --- Lighthouse: full per-route reports (large, regenerable; summary.md is committed) ---
 docs/lighthouse/*.json
 
+# --- Playwright (local-only E2E: browsers, reports, traces) ---
+frontend/playwright-report/
+frontend/test-results/
+frontend/blob-report/
+frontend/.playwright/
+
 # --- OS / editor ---
 .DS_Store
 Thumbs.db
