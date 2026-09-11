@@ -125,6 +125,11 @@ needed for local use.
   Testing Library + vitest-axe) across all screens and the session store
   (**40 tests**). The boundary (the API client) is mocked; routing, guards,
   validation, and state run for real.
+- **End-to-end** — a Playwright suite (`frontend/e2e/`) drives the built SPA
+  against a live backend through the full journey (join → grounded answer →
+  scored quiz → progress) and the error paths (route guards, unknown class
+  code, form validation, non-PDF rejection). It's **local-only**: the happy
+  path calls the real LLM, so it needs a key and stays out of CI.
 
 ## 10. Security & CI
 
