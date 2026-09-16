@@ -79,10 +79,22 @@ Definition-of-Done gate = 100%).
 - **Branch:** `main` (local only — not pushed yet).
 
 ## 🐞 Known issues
-- GitHub remote not created yet — last attempt returned "Repository not found".
-  Repo must be created on the owner's account before any push (Phase 9).
-- ChromaDB was swapped for sqlite-vec in 0.x to resolve CVE-2026-45829
-  (pre-auth RCE, no fixed release available). Vector store is now sqlite-vec.
+- **Runtime uploads are not durable on the free-tier deploy.** SQLite lives on
+  Render's ephemeral container disk, not a persistent volume. Any container
+  restart (a crash, a redeploy, or a normal free-tier idle-timeout restart)
+  wipes everything uploaded at runtime and comes back with only the
+  build-time-seeded demo content (`BIO101`'s two original documents). Confirmed
+  2026-09-16: a mid-upload crash wiped two just-uploaded documents, which had
+  to be re-uploaded. Would need a persistent disk or a hosted DB to fix for
+  real — out of scope for the free-tier deploy as-is.
+- **Uploading a moderately large PDF (~20+ pages) in one request can OOM-crash
+  the backend** on Render's free 512MB RAM tier. Reproduced 2026-09-16: a
+  69-page PDF crashed the container immediately; splitting it into ~23-page
+  pieces worked for the first two uploads, then the third of that size in the
+  same container lifetime also crashed. Root cause not yet investigated —
+  likely something in the ingest pipeline (PDF parsing, chunking, or the
+  embedding pass) not releasing memory between requests. Workaround used:
+  split large PDFs into smaller files (~10-15 pages) before uploading.
 
 ## ⏭️ Next up after foundation
 Phase 1 — port the proven RAG logic from the earlier `rag-document-assistant`
