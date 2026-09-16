@@ -40,6 +40,12 @@ at build time, so the live app starts with real OpenStax content already
 indexed. See [docs/DEPLOY.md](docs/DEPLOY.md) + [docs/RUNBOOK.md](docs/RUNBOOK.md)
 for how it's hosted.
 
+> **Known limitation:** Render's free tier spins the backend down after ~15
+> minutes with no traffic. The first request after that wakes it back up and
+> can take 30-60 seconds, during which the health badge briefly shows
+> "Backend offline" — that's the container booting, not a bug. It resolves on
+> its own within a request or two.
+
 ## Cost
 
 **Runs effectively free.** Embeddings are computed locally with a small ONNX
