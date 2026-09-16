@@ -33,7 +33,7 @@ From then on, every student can:
 
 ## Live demo
 
-🌐 **[study-rag-tutor-st8w-3uf3xvqrt-abinthomas9322s-projects.vercel.app](https://study-rag-tutor-st8w-3uf3xvqrt-abinthomas9322s-projects.vercel.app)** —
+🌐 **[study-rag-tutor.vercel.app](https://study-rag-tutor.vercel.app)** —
 the API on [Render](https://dashboard.render.com) and the SPA on [Vercel](https://vercel.com),
 both on free tiers. The demo course **BIO101** is seeded into the backend image
 at build time, so the live app starts with real OpenStax content already
