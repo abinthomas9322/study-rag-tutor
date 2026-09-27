@@ -4,6 +4,8 @@ Centralises every tunable knob so the rest of the code never reads os.environ
 directly. Values can be overridden per-environment without touching code.
 """
 
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +28,10 @@ class Settings(BaseSettings):
 
     # --- Retrieval (passages returned per question) ---
     top_k: int = 4
+    # "hybrid" fuses BM25 keyword search with vector search (Reciprocal Rank
+    # Fusion); "vector" is embeddings only. Measured on eval/golden_set.jsonl:
+    # hybrid Hit@4 88.0% vs vector 86.0% — see eval/run.py.
+    retrieval_mode: Literal["vector", "hybrid"] = "hybrid"
 
     # --- Storage (SQLite file holds both relational data and vectors) ---
     db_path: str = "backend/tutor.db"

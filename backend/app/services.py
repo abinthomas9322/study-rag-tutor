@@ -10,7 +10,17 @@ from rag.config import Settings
 from rag.embeddings import Embedder
 from rag.pdf import extract_text
 from rag.quiz import Quiz, QuizGenerator, score_quiz
-from rag.store import VectorStore
+from rag.store import SearchHit, VectorStore
+
+
+def retrieve(
+    query: str, course_id: str, *, store: VectorStore, embedder: Embedder, settings: Settings
+) -> list[SearchHit]:
+    """Fetch the top-k chunks for ``query`` using the configured retrieval mode."""
+    query_vector = embedder.embed_query(query)
+    if settings.retrieval_mode == "hybrid":
+        return store.hybrid_search(course_id, query, query_vector, k=settings.top_k)
+    return store.search(course_id, query_vector, k=settings.top_k)
 
 
 def ingest_pdf(
@@ -58,11 +68,10 @@ def answer_question(
 ) -> Answer:
     """Answer a question grounded in a course's indexed materials.
 
-    Embeds the question, retrieves the top-k most relevant chunks for that
-    course, and asks the LLM to answer using only those chunks.
+    Retrieves the top-k most relevant chunks for that course (hybrid or
+    vector search, per settings), and asks the LLM to answer using only those chunks.
     """
-    query_vector = embedder.embed_query(question)
-    hits = store.search(course_id, query_vector, k=settings.top_k)
+    hits = retrieve(question, course_id, store=store, embedder=embedder, settings=settings)
     return generator.generate(question, hits)
 
 
@@ -86,8 +95,7 @@ def generate_quiz(
     quiz (course has no materials) is not persisted and yields ``(None, quiz)``.
     """
     if topic:
-        query_vector = embedder.embed_query(topic)
-        hits = store.search(course_id, query_vector, k=settings.top_k)
+        hits = retrieve(topic, course_id, store=store, embedder=embedder, settings=settings)
     else:
         hits = store.sample(course_id, n=settings.top_k)
     quiz = generator.generate(num_questions, hits, topic=topic)

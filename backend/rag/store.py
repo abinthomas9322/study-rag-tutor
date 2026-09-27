@@ -6,6 +6,7 @@ partitioned by ``course_id`` so a similarity search only ever ranks chunks
 from the course being queried — one class never sees another's material.
 """
 
+import re
 import sqlite3
 import struct
 from collections.abc import Sequence
@@ -16,6 +17,21 @@ import sqlite_vec
 
 # Embedding dimensions for all-MiniLM-L6-v2.
 DEFAULT_DIM = 384
+
+# Reciprocal Rank Fusion constant; 60 is the value from the original RRF paper
+# and damps the influence of any single list's top ranks.
+RRF_K = 60
+
+# Question words and fillers that carry no topic signal. Dropping them keeps
+# BM25 from rewarding chunks just for containing "what" or "the".
+STOPWORDS = frozenset(
+    """
+    a about an and are as at be been by can do does did for from has have how i if in
+    into is it its more most much of on or so than that the their them then there these
+    they this those to up was we were what when where which who whom why will with you
+    your
+    """.split()  # noqa: SIM905
+)
 
 
 @dataclass(frozen=True)
@@ -88,6 +104,21 @@ class VectorStore:
                 text text not null
             )"""
         )
+        # Keyword index for BM25 search. Only ``text`` is tokenised; the ids are
+        # stored alongside so results can be filtered by course and joined back.
+        self._conn.execute(
+            """create virtual table if not exists fts_chunks using fts5(
+                text, chunk_id unindexed, course_id unindexed,
+                tokenize = 'porter unicode61'
+            )"""
+        )
+        # Backfill databases created before the keyword index existed.
+        (indexed,) = self._conn.execute("select count(*) from fts_chunks").fetchone()
+        if indexed == 0:
+            self._conn.execute(
+                "insert into fts_chunks(text, chunk_id, course_id) "
+                "select text, chunk_id, course_id from chunks"
+            )
         self._conn.commit()
 
     def add(
@@ -116,6 +147,10 @@ class VectorStore:
                 "insert into vec_chunks(chunk_id, course_id, embedding) values (?, ?, ?)",
                 (chunk_id, course_id, _serialize(vector)),
             )
+            self._conn.execute(
+                "insert into fts_chunks(text, chunk_id, course_id) values (?, ?, ?)",
+                (text, chunk_id, course_id),
+            )
             ids.append(chunk_id)
         self._conn.commit()
         return ids
@@ -136,6 +171,63 @@ class VectorStore:
             (_serialize(query_vector), k, course_id),
         ).fetchall()
         return [SearchHit(cid, doc, text, dist) for cid, doc, text, dist in rows]
+
+    def keyword_search(self, course_id: str, query: str, k: int = 4) -> list[SearchHit]:
+        """Return the ``k`` chunks in ``course_id`` that best match ``query`` by BM25.
+
+        The query is reduced to its words, minus stopwords, and OR-ed together,
+        so punctuation in a student's question can never be parsed as FTS5
+        query syntax. The index uses the Porter stemmer, so "absorbs" matches
+        "absorb". The returned ``distance`` is the BM25 score (lower is better).
+        """
+        if k <= 0:
+            raise ValueError("k must be positive")
+        terms = [t for t in re.findall(r"\w+", query.lower()) if t not in STOPWORDS]
+        if not terms:
+            return []
+        match = " OR ".join(f'"{t}"' for t in terms)
+        rows = self._conn.execute(
+            """select f.chunk_id, c.document_id, c.text, bm25(fts_chunks)
+               from fts_chunks f
+               join chunks c on c.chunk_id = f.chunk_id
+               where fts_chunks match ? and f.course_id = ?
+               order by bm25(fts_chunks)
+               limit ?""",
+            (match, course_id, k),
+        ).fetchall()
+        return [SearchHit(cid, doc, text, score) for cid, doc, text, score in rows]
+
+    def hybrid_search(
+        self,
+        course_id: str,
+        query: str,
+        query_vector: Sequence[float],
+        k: int = 4,
+        candidates: int = 20,
+    ) -> list[SearchHit]:
+        """Fuse vector and BM25 rankings with Reciprocal Rank Fusion.
+
+        Each list contributes ``1 / (RRF_K + rank)`` per chunk, so a chunk that
+        ranks well in both wins, while one found by only one method can still
+        make the cut. Only ranks are used, so the two methods' very different
+        score scales never need to be compared. Hits keep the distance from
+        whichever search found them first (vector search takes precedence).
+        """
+        if k <= 0:
+            raise ValueError("k must be positive")
+        depth = max(k, candidates)
+        ranked = (
+            self.search(course_id, query_vector, k=depth),
+            self.keyword_search(course_id, query, k=depth),
+        )
+        scores: dict[int, float] = {}
+        hits: dict[int, SearchHit] = {}
+        for results in ranked:
+            for rank, hit in enumerate(results, start=1):
+                scores[hit.chunk_id] = scores.get(hit.chunk_id, 0.0) + 1 / (RRF_K + rank)
+                hits.setdefault(hit.chunk_id, hit)
+        best = sorted(scores, key=lambda cid: scores[cid], reverse=True)[:k]
+        return [hits[cid] for cid in best]
 
     def sample(self, course_id: str, n: int) -> list[SearchHit]:
         """Return up to ``n`` chunks spread evenly across a course's material.

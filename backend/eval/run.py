@@ -8,6 +8,7 @@ Run from the ``backend`` directory::
 
     python -m eval.run            # default k from settings (top_k)
     python -m eval.run --k 8 --show-misses
+    python -m eval.run --mode all  # compare vector, keyword and hybrid
 """
 
 import argparse
@@ -16,7 +17,7 @@ from pathlib import Path
 from rag.chunking import chunk_text
 from rag.config import get_settings
 from rag.embeddings import Embedder
-from rag.evaluation import evaluate, load_golden
+from rag.evaluation import Retriever, evaluate, load_golden
 from rag.pdf import extract_text
 from rag.store import DEFAULT_DIM, SearchHit, VectorStore
 
@@ -38,28 +39,46 @@ def build_store(embedder: Embedder) -> VectorStore:
     return store
 
 
+MODES = ("vector", "keyword", "hybrid")
+
+
+def make_retriever(mode: str, store: VectorStore, embedder: Embedder) -> Retriever:
+    """Build a ``(question, k) -> hits`` function for one retrieval mode."""
+
+    def retrieve(question: str, k: int) -> list[SearchHit]:
+        if mode == "keyword":
+            return store.keyword_search(COURSE_ID, question, k=k)
+        vector = embedder.embed_query(question)
+        if mode == "hybrid":
+            return store.hybrid_search(COURSE_ID, question, vector, k=k)
+        return store.search(COURSE_ID, vector, k=k)
+
+    return retrieve
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--k", type=int, default=get_settings().top_k)
+    parser.add_argument("--mode", choices=[*MODES, "all"], default="all")
     parser.add_argument("--show-misses", action="store_true")
     args = parser.parse_args()
 
     embedder = Embedder()
     store = build_store(embedder)
     items = load_golden(GOLDEN)
+    by_id = {i.id: i for i in items}
+    print(f"questions: {len(items)}  chunks indexed: {store.count(COURSE_ID)}  k={args.k}\n")
+    print(f"{'mode':<8} {'Hit@k':>7} {'MRR':>6} {'ms/q':>6}")
 
-    def retrieve(question: str, k: int) -> list[SearchHit]:
-        return store.search(COURSE_ID, embedder.embed_query(question), k=k)
-
-    report = evaluate(retrieve, items, k=args.k)
-    print(f"questions : {len(items)}  (chunks indexed: {store.count(COURSE_ID)})")
-    print(f"Hit@{report.k:<5}: {report.hit_rate:.1%}")
-    print(f"MRR      : {report.mrr:.3f}")
-    print(f"latency  : {report.mean_latency_ms:.1f} ms / question")
-    if args.show_misses:
-        by_id = {i.id: i for i in items}
-        for miss in report.misses:
-            print(f"  miss {miss}: {by_id[miss].question}")
+    modes = MODES if args.mode == "all" else (args.mode,)
+    for mode in modes:
+        report = evaluate(make_retriever(mode, store, embedder), items, k=args.k)
+        print(
+            f"{mode:<8} {report.hit_rate:>7.1%} {report.mrr:>6.3f} {report.mean_latency_ms:>6.1f}"
+        )
+        if args.show_misses:
+            for miss in report.misses:
+                print(f"    miss {miss}: {by_id[miss].question}")
 
 
 if __name__ == "__main__":

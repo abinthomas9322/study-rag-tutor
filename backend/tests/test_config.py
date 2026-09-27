@@ -14,6 +14,7 @@ def test_defaults_are_sensible() -> None:
     assert s.chunk_size == 800
     assert s.chunk_overlap == 120
     assert s.top_k == 4
+    assert s.retrieval_mode == "hybrid"
     assert s.groq_api_key == ""
 
 

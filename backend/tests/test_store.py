@@ -163,3 +163,63 @@ def test_injected_connection_is_shared_and_not_closed() -> None:
     # Still usable after store.close() because the store doesn't own it.
     assert conn.execute("select count(*) from chunks").fetchone()[0] == 1
     conn.close()
+
+
+# --- keyword (BM25) and hybrid search ---------------------------------------
+
+
+def _text_store() -> VectorStore:
+    store = _store()
+    store.add(
+        "c1",
+        "d",
+        [
+            "The Calvin cycle takes place in the stroma.",
+            "Chlorophyll absorbs red and blue light.",
+            "Ribosomes attached to the rough ER make it look studded.",
+        ],
+        [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]],
+    )
+    store.add("c2", "d", ["The stroma surrounds the grana."], [[1.0, 0.0, 0.0, 0.0]])
+    return store
+
+
+def test_keyword_search_matches_stemmed_terms_within_course() -> None:
+    hits = _text_store().keyword_search("c1", "Which pigment absorbing light?", k=4)
+    assert [h.text for h in hits] == ["Chlorophyll absorbs red and blue light."]
+
+
+def test_keyword_search_ignores_stopwords_and_query_syntax() -> None:
+    store = _text_store()
+    assert store.keyword_search("c1", "what is the (of) AND?", k=4) == []
+    assert store.keyword_search("c1", "  ", k=4) == []
+
+
+def test_keyword_search_non_positive_k_raises() -> None:
+    with pytest.raises(ValueError):
+        _text_store().keyword_search("c1", "stroma", k=0)
+
+
+def test_hybrid_search_ranks_chunks_found_by_both_methods_first() -> None:
+    store = _text_store()
+    # The vector points at the Calvin chunk; the keyword points at the ER chunk.
+    # The ER chunk is found by both methods (vector rank 2 via k=3), so it wins.
+    hits = store.hybrid_search("c1", "rough ER", [0.1, 0.0, 1.0, 0.0], k=2)
+    assert hits[0].text.startswith("Ribosomes")
+    assert len(hits) == 2
+
+
+def test_hybrid_search_non_positive_k_raises() -> None:
+    with pytest.raises(ValueError):
+        _text_store().hybrid_search("c1", "stroma", [1.0, 0.0, 0.0, 0.0], k=0)
+
+
+def test_keyword_index_is_backfilled_for_older_databases() -> None:
+    conn = connect(":memory:")
+    store = VectorStore(connection=conn, dim=DIM)
+    store.add("c1", "d", ["The stroma surrounds the grana."], [[1.0, 0.0, 0.0, 0.0]])
+    conn.execute("delete from fts_chunks")  # simulate a DB from before the index
+    reopened = VectorStore(connection=conn, dim=DIM)
+    assert [h.text for h in reopened.keyword_search("c1", "grana", k=1)] == [
+        "The stroma surrounds the grana."
+    ]
