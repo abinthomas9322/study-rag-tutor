@@ -1,0 +1,50 @@
+{"id": "ps01", "question": "Why do people and animals depend on photosynthesis to eat and breathe?", "expected": "to eat and breathe, humans depend almost entirely on the organisms that carry out photosynthesis"}
+{"id": "ps02", "question": "What kind of organism can make its own food?", "expected": "is an organism that can produce its own food"}
+{"id": "ps03", "question": "How do heterotrophs get their energy and carbon?", "expected": "must therefore obtain energy and carbon from food by consuming other organisms"}
+{"id": "ps04", "question": "In the deer and wolf food chain example, which organism is the only autotroph?", "expected": "it is the only autotroph in this example"}
+{"id": "ps05", "question": "What are the starting ingredients needed for photosynthesis?", "expected": "Photosynthesis requires sunlight, carbon dioxide, and water as starting reactants"}
+{"id": "ps06", "question": "How is the food sold in a supermarket connected to photosynthesis?", "expected": "each item links back to photosynthesis"}
+{"id": "ps07", "question": "Which layer of the leaf carries out photosynthesis?", "expected": "but rather in a middle layer called"}
+{"id": "ps08", "question": "What gives plants their green colour?", "expected": "is responsible for the green color of plants"}
+{"id": "ps09", "question": "What is the difference between the stroma and the stomata?", "expected": "not to be confused with stomata, the openings on the leaves"}
+{"id": "ps10", "question": "Who discovered that photosynthesis happens in two stages in two locations?", "expected": "was discovered by Joan Mary Anderson"}
+{"id": "ps11", "question": "How is the energy of a light wave related to its wavelength?", "expected": "The longer the wavelength (or the more stretched out it appears), the less energy is carried"}
+{"id": "ps12", "question": "Why do plants that grow in the shade benefit from having many different pigments?", "expected": "Plants that commonly grow in the shade benefit from having a variety of light-absorbing pigments"}
+{"id": "ps13", "question": "Which colours of light does chlorophyll a absorb and which does it reflect?", "expected": "absorbs wavelengths from either end of the visible spectrum (blue and red), but not from green"}
+{"id": "ps14", "question": "What happens to an electron in chlorophyll when a photon hits it?", "expected": "The photon causes an electron in the chlorophyll to become"}
+{"id": "ps15", "question": "Where does the oxygen released by plants come from?", "expected": "To replace the electron in the chlorophyll, a molecule of water is split"}
+{"id": "ps16", "question": "Why is photosystem II called number two even though it acts first?", "expected": "which was named for the order of its discovery rather than for the order of the function"}
+{"id": "ps17", "question": "Which two energy-carrier molecules store the energy captured from sunlight?", "expected": "energy absorbed by sunlight is stored by two types of energy-carrier molecules: ATP and NADPH"}
+{"id": "ps18", "question": "What enzyme lets hydrogen ions flow back across the thylakoid membrane to make ATP?", "expected": "through an embedded protein complex called ATP synthase"}
+{"id": "ps19", "question": "What are the three stages of the Calvin cycle?", "expected": "can be organized into three basic stages: fixation, reduction, and regeneration"}
+{"id": "ps20", "question": "How many turns of the Calvin cycle are needed to build one glucose molecule, and why?", "expected": "it takes six turns of the Calvin cycle to make one carbohydrate molecule"}
+{"id": "ps21", "question": "How have desert plants adapted photosynthesis to save water?", "expected": "Photosynthesis in dry-climate plants"}
+{"id": "ps22", "question": "Where does photosynthesis happen in bacteria that have no chloroplasts?", "expected": "have infoldings of the plasma membrane for chlorophyll attachment and photosynthesis"}
+{"id": "cs01", "question": "How many red blood cells could fit on the head of a pin?", "expected": "approximately 250 red blood cells could fit on the head of a pin"}
+{"id": "cs02", "question": "Why does an image look upside down under a microscope?", "expected": "this system of lenses produces an inverted image"}
+{"id": "cs03", "question": "What is the difference between magnification and resolving power?", "expected": "Magnification is the degree of enlargement of an object"}
+{"id": "cs04", "question": "Why can't living cells be viewed with an electron microscope?", "expected": "Preparation of a specimen for viewing under an electron microscope will kill it"}
+{"id": "cs05", "question": "What does a cytotechnologist do?", "expected": "are professionals who study cells through microscopic examinations and other laboratory tests"}
+{"id": "cs06", "question": "Who first used the word cell and where did the name come from?", "expected": "Robert Hooke coined the term"}
+{"id": "cs07", "question": "What are the main principles of the unified cell theory?", "expected": "which states that all living things are composed of one or more cells"}
+{"id": "cs08", "question": "Which four components do all cells have in common?", "expected": "All cells share four common components"}
+{"id": "cs09", "question": "What is bacterial cell wall made of and what does it do?", "expected": "bacteria have a cell wall made of peptidoglycan"}
+{"id": "cs10", "question": "Why are cells limited in how big they can grow?", "expected": "cell size is limited because volume increases much more quickly than does cell surface area"}
+{"id": "cs11", "question": "Why can people with celiac disease not absorb nutrients properly?", "expected": "The immune response damages microvilli"}
+{"id": "cs12", "question": "What are the three kinds of protein fibres in the cytoskeleton?", "expected": "There are three types of fibers within the cytoskeleton"}
+{"id": "cs13", "question": "How are microtubules arranged inside cilia and flagella?", "expected": "a circle of nine double microtubules on the outside and two microtubules in the center"}
+{"id": "cs14", "question": "How many chromosomes do humans have compared with fruit flies?", "expected": "in humans, the chromosome number is 46, whereas in fruit flies, the chromosome number is eight"}
+{"id": "cs15", "question": "Why is the rough ER called rough?", "expected": "because the ribosomes attached to its cytoplasmic surface give it a studded appearance"}
+{"id": "cs16", "question": "What are the jobs of the smooth endoplasmic reticulum?", "expected": "functions include synthesis of carbohydrates, lipids (including phospholipids), and steroid hormones"}
+{"id": "cs17", "question": "Which cells have a lot of Golgi and why?", "expected": "Cells that engage in a great deal of secretory activity"}
+{"id": "cs18", "question": "How do macrophages destroy bacteria using lysosomes?", "expected": "In a process known as phagocytosis"}
+{"id": "cs19", "question": "Why do muscle cells contain so many mitochondria?", "expected": "muscle cells have a very high concentration of mitochondria because muscle cells need a lot of energy to contract"}
+{"id": "cs20", "question": "How do peroxisomes deal with hydrogen peroxide?", "expected": "Hydrogen peroxide is safely broken down by peroxisomal enzymes into water and oxygen"}
+{"id": "cs21", "question": "Which structures do plant cells have that animal cells lack?", "expected": "Plant cells have a cell wall, chloroplasts, plasmodesmata, and plastids used for storage"}
+{"id": "cs22", "question": "What evidence supports the idea that mitochondria were once bacteria?", "expected": "In 1967, Lynn Margulis used microbial evidence in her proposal of endosymbiotic theory"}
+{"id": "cs23", "question": "Why does a plant wilt when it is not watered?", "expected": "This loss of support to the cell walls of a plant results in the wilted appearance"}
+{"id": "cs24", "question": "What stops urine leaking out of the bladder between cells?", "expected": "the tight junctions of the epithelial cells lining the urinary bladder prevent urine from leaking"}
+{"id": "cs25", "question": "What role does cholesterol play in the cell membrane?", "expected": "cholesterol acts as antifreeze in the cell membrane"}
+{"id": "cs26", "question": "How does HIV get into specific white blood cells?", "expected": "HIV docks at and binds to the CD4 receptor"}
+{"id": "cs27", "question": "What factors change how fast diffusion happens?", "expected": "Several factors affect the rate of diffusion"}
+{"id": "cs28", "question": "What happens to an animal cell placed in a hypotonic solution like tap water?", "expected": "This may cause an animal cell to burst, or lyse"}
