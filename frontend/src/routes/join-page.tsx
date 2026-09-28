@@ -20,6 +20,10 @@ const joinSchema = z.object({
 
 type JoinForm = z.infer<typeof joinSchema>;
 
+// The real OpenStax biology course seeded into every deployment, so visitors
+// can try the app without an instructor-issued code.
+export const DEMO_CLASS_CODE = "BIO101";
+
 export function JoinPage() {
   const { session, startSession } = useSession();
   const navigate = useNavigate();
@@ -27,6 +31,7 @@ export function JoinPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<JoinForm>({
     resolver: zodResolver(joinSchema),
@@ -83,7 +88,7 @@ export function JoinPage() {
               <Label htmlFor="courseCode">Class code</Label>
               <Input
                 id="courseCode"
-                placeholder="e.g. CS101"
+                placeholder={`e.g. ${DEMO_CLASS_CODE}`}
                 autoComplete="off"
                 aria-invalid={errors.courseCode ? true : undefined}
                 aria-describedby={errors.courseCode ? "courseCode-error" : undefined}
@@ -94,6 +99,17 @@ export function JoinPage() {
                   {errors.courseCode.message}
                 </p>
               )}
+              <p className="text-sm text-muted-foreground">
+                Trying the demo? Use class code{" "}
+                <button
+                  type="button"
+                  className="rounded font-mono font-semibold text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onClick={() => setValue("courseCode", DEMO_CLASS_CODE, { shouldValidate: true })}
+                >
+                  {DEMO_CLASS_CODE}
+                </button>{" "}
+                (biology, real OpenStax chapters).
+              </p>
             </div>
 
             <div className="space-y-2">

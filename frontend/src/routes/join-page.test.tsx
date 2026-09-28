@@ -44,6 +44,15 @@ describe("JoinPage", () => {
     expect(mockedJoin).not.toHaveBeenCalled();
   });
 
+  it("fills in the demo class code when the hint is clicked", async () => {
+    const user = userEvent.setup();
+    renderApp("/");
+
+    await user.click(screen.getByRole("button", { name: "BIO101" }));
+
+    expect(screen.getByLabelText(/class code/i)).toHaveValue("BIO101");
+  });
+
   it("joins, persists the session, and navigates to the course home", async () => {
     const user = userEvent.setup();
     mockedJoin.mockResolvedValue(STUDENT);

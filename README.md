@@ -13,6 +13,15 @@
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](frontend/src/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+> ### 🚀 Try it now
+> 1. Open **[study-rag-tutor.vercel.app](https://study-rag-tutor.vercel.app)**
+> 2. Enter class code **`BIO101`** and any display name
+> 3. Ask e.g. _"Why is the rough ER called rough?"_ or generate a quiz on _"photosynthesis"_
+>
+> `BIO101` is a real demo course (two OpenStax biology chapters) that is open to
+> everyone. The first request can take up to a minute while the free-tier
+> server wakes up.
+
 ---
 
 ## What it does
