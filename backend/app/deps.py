@@ -9,6 +9,7 @@ from rag.answer import AnswerGenerator
 from rag.config import Settings
 from rag.embeddings import Embedder
 from rag.quiz import QuizGenerator
+from rag.rerank import Reranker
 from rag.store import VectorStore
 
 
@@ -32,6 +33,10 @@ def get_quiz_generator(request: Request) -> QuizGenerator:
     return request.app.state.quiz_generator
 
 
+def get_reranker(request: Request) -> Reranker | None:
+    return request.app.state.reranker
+
+
 def get_settings_state(request: Request) -> Settings:
     return request.app.state.settings
 
@@ -43,4 +48,5 @@ StoreDep = Annotated[VectorStore, Depends(get_store)]
 EmbedderDep = Annotated[Embedder, Depends(get_embedder)]
 GeneratorDep = Annotated[AnswerGenerator, Depends(get_generator)]
 QuizGeneratorDep = Annotated[QuizGenerator, Depends(get_quiz_generator)]
+RerankerDep = Annotated[Reranker | None, Depends(get_reranker)]
 SettingsDep = Annotated[Settings, Depends(get_settings_state)]

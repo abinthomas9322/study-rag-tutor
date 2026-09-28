@@ -19,6 +19,7 @@ from rag.config import get_settings
 from rag.embeddings import Embedder
 from rag.evaluation import Retriever, evaluate, load_golden
 from rag.pdf import extract_text
+from rag.rerank import Reranker
 from rag.store import DEFAULT_DIM, SearchHit, VectorStore
 
 HERE = Path(__file__).parent
@@ -39,19 +40,26 @@ def build_store(embedder: Embedder) -> VectorStore:
     return store
 
 
-MODES = ("vector", "keyword", "hybrid")
+MODES = ("vector", "keyword", "hybrid", "vector+rerank", "hybrid+rerank")
+CANDIDATES = 20  # first-stage hits handed to the reranker
 
 
-def make_retriever(mode: str, store: VectorStore, embedder: Embedder) -> Retriever:
+def make_retriever(
+    mode: str, store: VectorStore, embedder: Embedder, reranker: Reranker
+) -> Retriever:
     """Build a ``(question, k) -> hits`` function for one retrieval mode."""
+    base, _, rerank = mode.partition("+")
 
     def retrieve(question: str, k: int) -> list[SearchHit]:
-        if mode == "keyword":
-            return store.keyword_search(COURSE_ID, question, k=k)
-        vector = embedder.embed_query(question)
-        if mode == "hybrid":
-            return store.hybrid_search(COURSE_ID, question, vector, k=k)
-        return store.search(COURSE_ID, vector, k=k)
+        depth = CANDIDATES if rerank else k
+        if base == "keyword":
+            hits = store.keyword_search(COURSE_ID, question, k=depth)
+        elif base == "hybrid":
+            vector = embedder.embed_query(question)
+            hits = store.hybrid_search(COURSE_ID, question, vector, k=depth)
+        else:
+            hits = store.search(COURSE_ID, embedder.embed_query(question), k=depth)
+        return reranker.rerank(question, hits, k=k) if rerank else hits
 
     return retrieve
 
@@ -64,17 +72,18 @@ def main() -> None:
     args = parser.parse_args()
 
     embedder = Embedder()
+    reranker = Reranker()
     store = build_store(embedder)
     items = load_golden(GOLDEN)
     by_id = {i.id: i for i in items}
     print(f"questions: {len(items)}  chunks indexed: {store.count(COURSE_ID)}  k={args.k}\n")
-    print(f"{'mode':<8} {'Hit@k':>7} {'MRR':>6} {'ms/q':>6}")
+    print(f"{'mode':<14} {'Hit@k':>7} {'MRR':>6} {'ms/q':>6}")
 
     modes = MODES if args.mode == "all" else (args.mode,)
     for mode in modes:
-        report = evaluate(make_retriever(mode, store, embedder), items, k=args.k)
+        report = evaluate(make_retriever(mode, store, embedder, reranker), items, k=args.k)
         print(
-            f"{mode:<8} {report.hit_rate:>7.1%} {report.mrr:>6.3f} {report.mean_latency_ms:>6.1f}"
+            f"{mode:<14} {report.hit_rate:>7.1%} {report.mrr:>6.3f} {report.mean_latency_ms:>6.1f}"
         )
         if args.show_misses:
             for miss in report.misses:

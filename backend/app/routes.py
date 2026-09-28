@@ -7,6 +7,7 @@ from app.deps import (
     EmbedderDep,
     GeneratorDep,
     QuizGeneratorDep,
+    RerankerDep,
     SettingsDep,
     StoreDep,
 )
@@ -157,6 +158,7 @@ def ask(
     store: StoreDep,
     embedder: EmbedderDep,
     generator: GeneratorDep,
+    reranker: RerankerDep,
     settings: SettingsDep,
 ) -> AnswerOut:
     """Answer a question grounded in the course's materials, with citations."""
@@ -167,6 +169,7 @@ def ask(
         embedder=embedder,
         generator=generator,
         settings=settings,
+        reranker=reranker,
     )
     sources = [
         SourceOut(document_id=h.document_id, text=h.text, distance=h.distance)
@@ -187,6 +190,7 @@ def quiz(
     store: StoreDep,
     embedder: EmbedderDep,
     quiz_generator: QuizGeneratorDep,
+    reranker: RerankerDep,
     settings: SettingsDep,
 ) -> QuizOut:
     """Generate a practice quiz grounded in a course's materials.
@@ -207,6 +211,7 @@ def quiz(
             embedder=embedder,
             generator=quiz_generator,
             settings=settings,
+            reranker=reranker,
         )
     except ValueError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc

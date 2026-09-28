@@ -5,7 +5,8 @@ import pytest
 from rag.config import Settings, get_settings
 
 
-def test_defaults_are_sensible() -> None:
+def test_defaults_are_sensible(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("RERANK")  # set to false for every test by conftest
     # _env_file=None keeps the test deterministic regardless of any local .env.
     s = Settings(_env_file=None)
     assert s.llm_base_url.startswith("https://")
@@ -15,6 +16,8 @@ def test_defaults_are_sensible() -> None:
     assert s.chunk_overlap == 120
     assert s.top_k == 4
     assert s.retrieval_mode == "hybrid"
+    assert s.rerank is True
+    assert s.rerank_candidates == 20
     assert s.groq_api_key == ""
 
 

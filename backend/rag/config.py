@@ -33,6 +33,14 @@ class Settings(BaseSettings):
     # hybrid Hit@4 88.0% vs vector 86.0% — see eval/run.py.
     retrieval_mode: Literal["vector", "hybrid"] = "hybrid"
 
+    # --- Reranking (cross-encoder re-orders the first-stage candidates) ---
+    # Measured on eval/golden_set.jsonl: hybrid+rerank Hit@4 98.0% vs 88.0%
+    # without, at ~0.5 s extra per question. Adds an ~80 MB model in memory;
+    # set RERANK=false on very small hosts.
+    rerank: bool = True
+    rerank_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"
+    rerank_candidates: int = 20
+
     # --- Storage (SQLite file holds both relational data and vectors) ---
     db_path: str = "backend/tutor.db"
 

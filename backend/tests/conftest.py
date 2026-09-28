@@ -65,3 +65,12 @@ def make_pdf() -> Callable[..., bytes]:
         return _build_pdf(list(pages) if pages else [""])
 
     return _make
+
+
+@pytest.fixture(autouse=True)
+def _no_reranker_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep API tests offline: the real cross-encoder would download a model.
+
+    Tests that exercise reranking inject a fake reranker explicitly.
+    """
+    monkeypatch.setenv("RERANK", "false")

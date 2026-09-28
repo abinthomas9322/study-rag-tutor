@@ -4,7 +4,7 @@ import pytest
 
 from app.services import retrieve
 from rag.config import Settings
-from rag.store import VectorStore
+from rag.store import SearchHit, VectorStore
 
 
 class _FakeEmbedder:
@@ -42,3 +42,29 @@ def test_retrieve_uses_configured_mode(mode: str, first: str) -> None:
     )
     assert hits[0].text == first
     assert len(hits) == 2
+
+
+class _ReverseReranker:
+    """Stands in for the cross-encoder: returns candidates in reverse order."""
+
+    def __init__(self) -> None:
+        self.seen: int = 0
+
+    def rerank(self, query: str, hits: list[SearchHit], k: int) -> list[SearchHit]:
+        self.seen = len(hits)
+        return list(reversed(hits))[:k]
+
+
+def test_retrieve_reranks_a_wider_candidate_list() -> None:
+    settings = Settings(_env_file=None, top_k=1, rerank_candidates=5)
+    reranker = _ReverseReranker()
+    hits = retrieve(
+        "grana",
+        "c1",
+        store=_store(),
+        embedder=_FakeEmbedder(),  # type: ignore[arg-type]
+        settings=settings,
+        reranker=reranker,  # type: ignore[arg-type]
+    )
+    assert reranker.seen == 2  # both chunks fetched, not just top_k=1
+    assert len(hits) == 1

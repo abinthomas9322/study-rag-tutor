@@ -10,17 +10,32 @@ from rag.config import Settings
 from rag.embeddings import Embedder
 from rag.pdf import extract_text
 from rag.quiz import Quiz, QuizGenerator, score_quiz
+from rag.rerank import Reranker
 from rag.store import SearchHit, VectorStore
 
 
 def retrieve(
-    query: str, course_id: str, *, store: VectorStore, embedder: Embedder, settings: Settings
+    query: str,
+    course_id: str,
+    *,
+    store: VectorStore,
+    embedder: Embedder,
+    settings: Settings,
+    reranker: Reranker | None = None,
 ) -> list[SearchHit]:
-    """Fetch the top-k chunks for ``query`` using the configured retrieval mode."""
+    """Fetch the top-k chunks for ``query`` using the configured retrieval mode.
+
+    With a ``reranker``, a wider candidate list is fetched first and the
+    cross-encoder picks the final top-k from it.
+    """
+    k = settings.top_k
+    depth = max(k, settings.rerank_candidates) if reranker else k
     query_vector = embedder.embed_query(query)
     if settings.retrieval_mode == "hybrid":
-        return store.hybrid_search(course_id, query, query_vector, k=settings.top_k)
-    return store.search(course_id, query_vector, k=settings.top_k)
+        hits = store.hybrid_search(course_id, query, query_vector, k=depth)
+    else:
+        hits = store.search(course_id, query_vector, k=depth)
+    return reranker.rerank(query, hits, k=k) if reranker else hits
 
 
 def ingest_pdf(
@@ -65,13 +80,16 @@ def answer_question(
     embedder: Embedder,
     generator: AnswerGenerator,
     settings: Settings,
+    reranker: Reranker | None = None,
 ) -> Answer:
     """Answer a question grounded in a course's indexed materials.
 
     Retrieves the top-k most relevant chunks for that course (hybrid or
     vector search, per settings), and asks the LLM to answer using only those chunks.
     """
-    hits = retrieve(question, course_id, store=store, embedder=embedder, settings=settings)
+    hits = retrieve(
+        question, course_id, store=store, embedder=embedder, settings=settings, reranker=reranker
+    )
     return generator.generate(question, hits)
 
 
@@ -85,6 +103,7 @@ def generate_quiz(
     embedder: Embedder,
     generator: QuizGenerator,
     settings: Settings,
+    reranker: Reranker | None = None,
 ) -> tuple[str | None, Quiz]:
     """Generate a grounded quiz and persist it; return ``(quiz_id, quiz)``.
 
@@ -95,7 +114,9 @@ def generate_quiz(
     quiz (course has no materials) is not persisted and yields ``(None, quiz)``.
     """
     if topic:
-        hits = retrieve(topic, course_id, store=store, embedder=embedder, settings=settings)
+        hits = retrieve(
+            topic, course_id, store=store, embedder=embedder, settings=settings, reranker=reranker
+        )
     else:
         hits = store.sample(course_id, n=settings.top_k)
     quiz = generator.generate(num_questions, hits, topic=topic)

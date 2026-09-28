@@ -20,6 +20,7 @@ from rag.answer import AnswerGenerator
 from rag.config import Settings, get_settings
 from rag.embeddings import Embedder
 from rag.quiz import QuizGenerator
+from rag.rerank import Reranker
 from rag.store import DEFAULT_DIM, VectorStore, connect
 
 # The id of the demo course that ``seed.seed_demo`` bakes into the Docker image.
@@ -36,6 +37,7 @@ def create_app(
     embedder: Embedder | None = None,
     generator: AnswerGenerator | None = None,
     quiz_generator: QuizGenerator | None = None,
+    reranker: Reranker | None = None,
     settings: Settings | None = None,
 ) -> FastAPI:
     """Build and configure the FastAPI application.
@@ -55,6 +57,9 @@ def create_app(
     embedder = embedder or Embedder(settings.embed_model)
     generator = generator or AnswerGenerator(settings=settings)
     quiz_generator = quiz_generator or QuizGenerator(settings=settings)
+    # Lazy like the Embedder: the model only loads on the first reranked query.
+    if reranker is None and settings.rerank:
+        reranker = Reranker(settings.rerank_model)
 
     app = FastAPI(
         title="Study-Group RAG Tutor",
@@ -75,6 +80,7 @@ def create_app(
     app.state.embedder = embedder
     app.state.generator = generator
     app.state.quiz_generator = quiz_generator
+    app.state.reranker = reranker
     app.state.settings = settings
 
     @app.get("/health", tags=["system"])
