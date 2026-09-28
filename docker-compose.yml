@@ -1,0 +1,27 @@
+# Run the whole app locally with one command:
+#
+#   cp .env.example backend/.env   # then add your GROQ_API_KEY
+#   docker compose up --build
+#
+# Frontend: http://localhost:8080   Backend API docs: http://localhost:8000/docs
+services:
+  backend:
+    build: ./backend
+    env_file:
+      - path: backend/.env
+        required: false
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy

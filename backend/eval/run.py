@@ -8,7 +8,8 @@ Run from the ``backend`` directory::
 
     python -m eval.run            # default k from settings (top_k)
     python -m eval.run --k 8 --show-misses
-    python -m eval.run --mode all  # compare vector, keyword and hybrid
+    python -m eval.run --mode all  # compare every retrieval mode
+    python -m eval.run --mode hybrid+rerank --min-hit 0.95  # CI quality gate
 """
 
 import argparse
@@ -69,6 +70,9 @@ def main() -> None:
     parser.add_argument("--k", type=int, default=get_settings().top_k)
     parser.add_argument("--mode", choices=[*MODES, "all"], default="all")
     parser.add_argument("--show-misses", action="store_true")
+    parser.add_argument(
+        "--min-hit", type=float, default=None, help="exit non-zero if any mode scores below this"
+    )
     args = parser.parse_args()
 
     embedder = Embedder()
@@ -80,6 +84,7 @@ def main() -> None:
     print(f"{'mode':<14} {'Hit@k':>7} {'MRR':>6} {'ms/q':>6}")
 
     modes = MODES if args.mode == "all" else (args.mode,)
+    failed: list[str] = []
     for mode in modes:
         report = evaluate(make_retriever(mode, store, embedder, reranker), items, k=args.k)
         print(
@@ -88,6 +93,11 @@ def main() -> None:
         if args.show_misses:
             for miss in report.misses:
                 print(f"    miss {miss}: {by_id[miss].question}")
+        if args.min_hit is not None and report.hit_rate < args.min_hit:
+            failed.append(mode)
+
+    if failed:
+        raise SystemExit(f"\nFAIL: Hit@{args.k} below {args.min_hit:.0%} for: {', '.join(failed)}")
 
 
 if __name__ == "__main__":

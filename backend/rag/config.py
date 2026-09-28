@@ -29,12 +29,13 @@ class Settings(BaseSettings):
     # --- Retrieval (passages returned per question) ---
     top_k: int = 4
     # "hybrid" fuses BM25 keyword search with vector search (Reciprocal Rank
-    # Fusion); "vector" is embeddings only. Measured on eval/golden_set.jsonl:
-    # hybrid Hit@4 88.0% vs vector 86.0% — see eval/run.py.
+    # Fusion); "vector" is embeddings only. On eval/golden_set.jsonl hybrid
+    # alone ties vector (Hit@4 90.0%), but it gives the reranker better
+    # candidates: hybrid+rerank 98.0% vs vector+rerank 94.0% — see eval/run.py.
     retrieval_mode: Literal["vector", "hybrid"] = "hybrid"
 
     # --- Reranking (cross-encoder re-orders the first-stage candidates) ---
-    # Measured on eval/golden_set.jsonl: hybrid+rerank Hit@4 98.0% vs 88.0%
+    # Measured on eval/golden_set.jsonl: hybrid+rerank Hit@4 98.0% vs 90.0%
     # without, at ~0.5 s extra per question. Adds an ~80 MB model in memory;
     # set RERANK=false on very small hosts.
     rerank: bool = True

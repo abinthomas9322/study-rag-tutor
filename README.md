@@ -46,6 +46,43 @@ for how it's hosted.
 > "Backend offline" — that's the container booting, not a bug. It resolves on
 > its own within a request or two.
 
+## Retrieval quality (measured)
+
+Retrieval is evaluated on a **50-question golden set** written from the two
+demo OpenStax chapters ([`backend/eval/golden_set.jsonl`](backend/eval/golden_set.jsonl)).
+Each question is labelled with a phrase copied verbatim from the source, so
+scoring is deterministic and needs no LLM or API key.
+
+| Retrieval pipeline (k = 4) | Hit@4 | MRR | Latency / question (CPU) |
+|---|---|---|---|
+| Vector only (embeddings) | 90.0% | 0.823 | ~10 ms |
+| Keyword only (BM25, SQLite FTS5) | 78.0% | 0.622 | <1 ms |
+| Hybrid (BM25 + vector, Reciprocal Rank Fusion) | 90.0% | 0.763 | ~10 ms |
+| Vector + cross-encoder rerank | 94.0% | 0.805 | ~0.6 s |
+| **Hybrid + cross-encoder rerank (default)** | **98.0%** | **0.832** | ~0.6 s |
+
+- **Hit@4**: share of questions whose answer passage is in the 4 chunks sent to the LLM.
+- **MRR**: mean of 1/rank of that passage, rewarding it for ranking higher.
+- Hybrid alone ties vector search here, but it hands the reranker a better
+  candidate list (98% vs 94%) — keyword search rescues exact terms like
+  _"rough ER"_ or _"HIV"_ that embeddings rank poorly.
+- Evaluating also exposed a real bug: a fresh model download padded inputs to
+  128 tokens but truncated at 256, crashing the Docker build, while the older
+  cached config silently cut every chunk to 128 tokens. Pinning the tokenizer
+  fixed the crash and raised vector-only Hit@4 from 86% to 90%.
+- Caveats: 50 questions over two chapters is a small set — the ranking of
+  methods is informative, the exact percentages less so.
+
+```bash
+cd backend
+python -m eval.run --show-misses   # compare every pipeline, list missed questions
+```
+
+CI runs the same eval as a **quality gate**: the build fails if the default
+pipeline drops below 95% Hit@4. The reranker adds ~215 MB of RAM (~420 MB vs
+~205 MB peak, measured with `docker stats`), so it is switched off
+(`RERANK=false`) on the 512 MB free Render tier.
+
 ## Cost
 
 **Runs effectively free.** Embeddings are computed locally with a small ONNX
@@ -67,6 +104,20 @@ running on real [OpenStax](https://openstax.org) biology content:
 - 🗺️ [Roadmap](docs/ROADMAP.md) — slices, progress, and what's next
 
 ## Quick start
+
+### Option A: Docker (one command)
+
+> Prerequisites: Docker and a free [Groq API key](https://console.groq.com).
+
+```bash
+cp .env.example backend/.env         # then put your GROQ_API_KEY in backend/.env
+docker compose up --build
+```
+
+Open <http://localhost:8080> and join class **BIO101** (seeded into the image).
+API docs: <http://localhost:8000/docs>.
+
+### Option B: Run locally
 
 > Prerequisites: Python 3.12, Node 22, and a free [Groq API key](https://console.groq.com).
 
@@ -101,8 +152,9 @@ Open <http://localhost:5173>, join class **BIO101** (if you ran the seed), and a
 # backend (from backend/)
 pytest                 # tests + 100% coverage gate
 ruff check . && ruff format --check .
-mypy rag app
-bandit -r rag app
+mypy rag app eval
+bandit -r rag app eval
+python -m eval.run --mode hybrid+rerank --min-hit 0.95   # retrieval quality gate
 
 # frontend (from frontend/)
 npm run lint && npm run typecheck && npm run test:run && npm run build
@@ -119,7 +171,7 @@ least-privilege permissions and concurrency-cancel:
 - **`ci.yml`**
   - **Secret scan** — gitleaks
   - **Filesystem/dependency CVEs** — Trivy (fails on CRITICAL/HIGH, fixable)
-  - **Python job** — ruff lint, ruff format check, mypy, bandit, pip-audit, pytest (+100% coverage)
+  - **Python job** — ruff lint, ruff format check, mypy, bandit, pip-audit, pytest (+100% coverage), retrieval eval gate (Hit@4 ≥ 95%)
   - **Frontend job** — eslint, prettier check, tsc, vitest, production build, npm audit
 - **`codeql.yml`** — CodeQL SAST for **Python** and **JavaScript/TypeScript**, plus a weekly scheduled scan.
 
@@ -131,6 +183,7 @@ reports zero vulnerabilities.
 - 🔐 **Course spaces** — create/join a class by code; retrieval is strictly scoped per course, so one class never sees another's material.
 - 📄 **PDF ingestion** — upload PDFs that are extracted, chunked, embedded, and indexed; non-PDFs are rejected with a clear message.
 - 💬 **Grounded Q&A** — answers cite their sources and admit when the answer isn't in the materials (no hallucination).
+- 🎯 **Hybrid retrieval + reranking** — BM25 and vector search fused with Reciprocal Rank Fusion, then re-ordered by a cross-encoder; measured at 98% Hit@4 (see [Retrieval quality](#retrieval-quality-measured)).
 - 🧪 **Quiz tutor** — generate topic-focused or broad MCQ quizzes; answer key is withheld until you submit, then you get a score plus per-question explanations.
 - 📈 **Per-student progress** — every attempt is stored; the progress screen shows quizzes taken, average, best, and a dated history.
 - 🎨 **World-class UI** — responsive, accessible (WCAG-minded, automated axe checks), light/dark themed, with loading/empty/error states everywhere.

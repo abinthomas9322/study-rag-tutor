@@ -6,10 +6,34 @@ happens only when embeddings are actually needed.
 """
 
 from collections.abc import Sequence
+from typing import Any
 
 from fastembed import TextEmbedding
 
 from rag.config import get_settings
+
+# all-MiniLM-L6-v2 was trained on inputs of up to 256 tokens.
+MAX_TOKENS = 256
+
+
+def _pin_tokenizer(model: Any) -> None:
+    """Make tokenisation identical on every machine, whatever config was downloaded.
+
+    Upstream model configs have changed over time: a fresh download pads every
+    input to a fixed 128 tokens but truncates at 256, so any chunk longer than
+    128 tokens produces a ragged batch and embedding crashes, while an older
+    cached copy silently cuts every chunk to 128 tokens. Setting both explicitly
+    fixes the crash and embeds the whole chunk: truncate at the model's native
+    256 tokens and pad each batch to its longest input.
+    """
+    tokenizer = getattr(getattr(model, "model", None), "tokenizer", None)
+    if tokenizer is None:
+        return
+    padding = tokenizer.padding or {}
+    tokenizer.enable_truncation(max_length=MAX_TOKENS)
+    tokenizer.enable_padding(
+        pad_id=padding.get("pad_id", 0), pad_token=padding.get("pad_token", "[PAD]")
+    )
 
 
 class Embedder:
@@ -24,6 +48,7 @@ class Embedder:
         """The underlying model, built on first access and cached thereafter."""
         if self._model is None:
             self._model = TextEmbedding(model_name=self.model_name)
+            _pin_tokenizer(self._model)
         return self._model
 
     def embed(self, texts: Sequence[str]) -> list[list[float]]:

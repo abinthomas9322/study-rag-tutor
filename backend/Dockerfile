@@ -19,5 +19,9 @@ ENV DB_PATH=tutor.db
 # seeding only embeds locally.)
 RUN python -m seed.seed_demo
 
+# Pre-download the ~80 MB reranker so the first question after a deploy isn't
+# slowed by a model download. It is still only loaded into memory on first use.
+RUN python -c "from rag.rerank import Reranker; Reranker().model"
+
 # Render (and most hosts) inject $PORT; default to 8000 locally.
 CMD ["sh", "-c", "uvicorn app.main:create_app --factory --host 0.0.0.0 --port ${PORT:-8000}"]

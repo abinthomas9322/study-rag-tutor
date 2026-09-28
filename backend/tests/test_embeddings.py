@@ -7,6 +7,7 @@ when RUN_MODEL_TESTS=1 is set, so CI stays fast and offline.
 
 import os
 from collections.abc import Iterator
+from types import SimpleNamespace
 
 import pytest
 
@@ -33,6 +34,34 @@ def fake_model(monkeypatch: pytest.MonkeyPatch) -> type[_FakeModel]:
     _FakeModel.instances = 0
     monkeypatch.setattr(embeddings_module, "TextEmbedding", _FakeModel)
     return _FakeModel
+
+
+class _FakeTokenizer:
+    def __init__(self, padding: dict[str, object] | None) -> None:
+        self.padding = padding
+        self.calls: dict[str, dict[str, object]] = {}
+
+    def enable_truncation(self, **kwargs: object) -> None:
+        self.calls["truncation"] = kwargs
+
+    def enable_padding(self, **kwargs: object) -> None:
+        self.calls["padding"] = kwargs
+
+
+@pytest.mark.parametrize(
+    ("padding", "expected"),
+    [
+        ({"length": 128, "pad_id": 7, "pad_token": "<p>"}, {"pad_id": 7, "pad_token": "<p>"}),
+        (None, {"pad_id": 0, "pad_token": "[PAD]"}),
+    ],
+)
+def test_tokenizer_is_pinned_to_full_length_and_dynamic_padding(
+    padding: dict[str, object] | None, expected: dict[str, object]
+) -> None:
+    tokenizer = _FakeTokenizer(padding)
+    embeddings_module._pin_tokenizer(SimpleNamespace(model=SimpleNamespace(tokenizer=tokenizer)))
+    assert tokenizer.calls["truncation"] == {"max_length": embeddings_module.MAX_TOKENS}
+    assert tokenizer.calls["padding"] == expected  # no fixed "length": pad to longest
 
 
 def test_embed_returns_one_vector_per_text(fake_model: type[_FakeModel]) -> None:

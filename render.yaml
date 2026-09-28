@@ -30,3 +30,9 @@ services:
         sync: false # set in the dashboard; never committed
       - key: CORS_ORIGINS
         sync: false # set to your Vercel URL, e.g. https://study-rag-tutor.vercel.app
+      # The cross-encoder reranker raises peak memory from ~205 MB to ~420 MB
+      # (measured with docker stats after one question). That leaves too little
+      # headroom on the free tier's 512 MB, so it is off here. Retrieval is
+      # still hybrid; set to "true" on a plan with 1 GB+ RAM.
+      - key: RERANK
+        value: "false"
